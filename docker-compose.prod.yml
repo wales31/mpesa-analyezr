@@ -1,0 +1,53 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      MPESA_DATABASE_URL: ${MPESA_DATABASE_URL:-mysql+pymysql://mpesa:${MYSQL_PASSWORD:teamjfa}@db:3306/${MYSQL_DATABASE:-mpesa_analyzer}?charset=utf8mb4}
+      MPESA_CORS_ORIGINS: ${MPESA_CORS_ORIGINS:-https://analyze.online}
+      MPESA_ALLOW_LEGACY_USER_HEADER: ${MPESA_ALLOW_LEGACY_USER_HEADER:-false}
+      MPESA_ACCESS_TOKEN_TTL_HOURS: ${MPESA_ACCESS_TOKEN_TTL_HOURS:-24}
+      MPESA_PASSWORD_HASH_ITERATIONS: ${MPESA_PASSWORD_HASH_ITERATIONS:-260000}
+    depends_on:
+      db:
+        condition: service_healthy
+    expose:
+      - "8000"
+
+  web:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "${WEB_PORT:-80}:80"
+    volumes:
+      - ./frontend/src:/usr/share/nginx/html:ro
+      - ./deploy/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:teamjfa}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-mpesa_analyzer}
+      MYSQL_USER: ${MYSQL_USER:-mpesa}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:teamjfa}
+    volumes:
+      - mpesa_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u$$MYSQL_USER -p$$MYSQL_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+volumes:
+  mpesa_mysql_data:
