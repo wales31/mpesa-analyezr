@@ -54,6 +54,8 @@ pluginManagement {
 
   // Include the React Native Gradle plugin root build; it contains the
   // `settings-plugin` module that publishes `com.facebook.react.settings`.
+  // IMPORTANT: pass a String path to includeBuild(...) in pluginManagement;
+  // passing File can prevent Gradle from exposing settings plugins.
   // Including only the subdirectory can fail plugin marker discovery on
   // some Gradle/Android Studio combinations.
   def reactNativeSettingsPlugin = resolvePackageDir(
@@ -61,14 +63,14 @@ pluginManagement {
     "REACT_NATIVE_SETTINGS_PLUGIN_DIR",
     ["settings-plugin/build.gradle.kts"]
   )
-  includeBuild(reactNativeSettingsPlugin)
+  includeBuild(reactNativeSettingsPlugin.path)
 
   def expoPluginsPath = resolvePackageDir(
     "expo-modules-autolinking/android/expo-gradle-plugin",
     "EXPO_AUTOLINKING_GRADLE_PLUGIN_DIR",
     ["build.gradle.kts"]
   )
-  includeBuild(expoPluginsPath)
+  includeBuild(expoPluginsPath.path)
 }
 
 plugins {
