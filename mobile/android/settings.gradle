@@ -16,6 +16,8 @@ pluginManagement {
     return null
   }
 
+  def resolvePackageDir = { String packageRelativePath, String envVarName ->
+    def envOverride = System.getenv(envVarName)?.trim()
   def resolveExpoAutolinkingPluginDir = {
     def envOverride = System.getenv("EXPO_AUTOLINKING_GRADLE_PLUGIN_DIR")?.trim()
     def candidates = []
@@ -25,6 +27,32 @@ pluginManagement {
     }
 
     // Supports opening repo root, mobile/, or mobile/android in Android Studio.
+    candidates.add(new File(rootDir, "../node_modules/${packageRelativePath}"))
+    candidates.add(new File(rootDir, "../../node_modules/${packageRelativePath}"))
+    candidates.add(new File(rootDir, "../../../node_modules/${packageRelativePath}"))
+
+    def resolved = findExistingDir(candidates)
+    if (resolved != null) {
+      return resolved.path
+    }
+
+    throw new GradleException(
+      "Could not locate '${packageRelativePath}'. Checked: ${candidates*.path}. " +
+        "Run 'npm install' or set ${envVarName} to the package directory path."
+    )
+  }
+
+  def reactNativeGradlePlugin = resolvePackageDir(
+    "@react-native/gradle-plugin",
+    "REACT_NATIVE_GRADLE_PLUGIN_DIR"
+  )
+  includeBuild(reactNativeGradlePlugin)
+
+  def expoPluginsPath = resolvePackageDir(
+    "expo-modules-autolinking/android/expo-gradle-plugin",
+    "EXPO_AUTOLINKING_GRADLE_PLUGIN_DIR"
+  )
+  includeBuild(expoPluginsPath)
     candidates.add(new File(rootDir, "../node_modules/expo-modules-autolinking/android/expo-gradle-plugin"))
     candidates.add(new File(rootDir, "../../node_modules/expo-modules-autolinking/android/expo-gradle-plugin"))
     candidates.add(new File(rootDir, "../../../node_modules/expo-modules-autolinking/android/expo-gradle-plugin"))
@@ -79,3 +107,4 @@ expoAutolinking.useExpoVersionCatalog()
 rootProject.name = "M-PESA Analyzer Mobile"
 
 include(":app")
+includeBuild(expoAutolinking.reactNativeGradlePlugin)
