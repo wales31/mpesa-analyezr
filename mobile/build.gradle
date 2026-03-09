@@ -1,0 +1,2 @@
+// Gradle aggregator project for Android Studio when opening the `mobile` folder.
+// The Android app itself is located at `mobile/android` and included via includeBuild.
