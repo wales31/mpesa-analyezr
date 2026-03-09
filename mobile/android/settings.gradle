@@ -18,8 +18,6 @@ pluginManagement {
 
   def resolvePackageDir = { String packageRelativePath, String envVarName ->
     def envOverride = System.getenv(envVarName)?.trim()
-  def resolveExpoAutolinkingPluginDir = {
-    def envOverride = System.getenv("EXPO_AUTOLINKING_GRADLE_PLUGIN_DIR")?.trim()
     def candidates = []
 
     if (envOverride) {
@@ -33,7 +31,7 @@ pluginManagement {
 
     def resolved = findExistingDir(candidates)
     if (resolved != null) {
-      return resolved.path
+      return resolved
     }
 
     throw new GradleException(
@@ -53,43 +51,10 @@ pluginManagement {
     "EXPO_AUTOLINKING_GRADLE_PLUGIN_DIR"
   )
   includeBuild(expoPluginsPath)
-    candidates.add(new File(rootDir, "../node_modules/expo-modules-autolinking/android/expo-gradle-plugin"))
-    candidates.add(new File(rootDir, "../../node_modules/expo-modules-autolinking/android/expo-gradle-plugin"))
-    candidates.add(new File(rootDir, "../../../node_modules/expo-modules-autolinking/android/expo-gradle-plugin"))
-
-    def resolved = findExistingDir(candidates)
-    if (resolved != null) {
-      return resolved
-    }
-
-    throw new GradleException(
-      "Could not locate Expo autolinking Gradle plugin directory. Checked: ${candidates*.path}. " +
-        "Run 'npm install' or set EXPO_AUTOLINKING_GRADLE_PLUGIN_DIR to the plugin directory path."
-    )
-  }
-
-  includeBuild(resolveExpoAutolinkingPluginDir().path)
-  def reactNativeGradlePlugin = new File(rootDir, "../node_modules/@react-native/gradle-plugin")
-  if (!reactNativeGradlePlugin.exists()) {
-    throw new GradleException(
-      "Missing React Native Gradle plugin at '${reactNativeGradlePlugin}'. " +
-      "Run 'npm install' (or 'yarn install') in the mobile project before opening Android Studio."
-    )
-  }
-  includeBuild(reactNativeGradlePlugin.absolutePath)
-
-  def expoPluginsPath = new File(rootDir, "../node_modules/expo-modules-autolinking/android/expo-gradle-plugin")
-  if (!expoPluginsPath.exists()) {
-    throw new GradleException(
-      "Missing Expo Gradle plugin at '${expoPluginsPath}'. " +
-      "Run 'npm install' (or 'yarn install') in the mobile project before opening Android Studio."
-    )
-  }
-  includeBuild(expoPluginsPath.absolutePath)
 }
 
 plugins {
-  id("com.facebook.react.settings") version "0.83.2"
+  id("com.facebook.react.settings")
   id("expo-autolinking-settings")
 }
 
