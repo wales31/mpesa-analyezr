@@ -47,6 +47,9 @@ def resolve_database_url() -> str:
     1) MPESA_DATABASE_URL / DATABASE_URL (full SQLAlchemy URL)
     2) MPESA_DB_BACKEND=mysql|mariadb (build from MYSQL_* vars)
     3) SQLite file under backend/ (default)
+
+    Note: MYSQL_* variables alone do not switch backends; set MPESA_DB_BACKEND=mysql
+    (or provide a full DATABASE_URL) when you explicitly want MySQL.
     """
 
     url = (os.getenv("MPESA_DATABASE_URL") or os.getenv("DATABASE_URL") or "").strip()
@@ -57,19 +60,6 @@ def resolve_database_url() -> str:
     if backend in {"sqlite"}:
         return DEFAULT_SQLITE_URL
     if backend in {"mysql", "mariadb"}:
-        return _build_mysql_url()
-
-    mysql_hint = any(
-        (os.getenv(key) or "").strip()
-        for key in (
-            "MYSQL_HOST",
-            "MYSQL_PORT",
-            "MYSQL_USER",
-            "MYSQL_PASSWORD",
-            "MYSQL_DATABASE",
-        )
-    )
-    if mysql_hint:
         return _build_mysql_url()
 
     return DEFAULT_SQLITE_URL
