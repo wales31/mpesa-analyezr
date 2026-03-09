@@ -16,6 +16,8 @@ dependencyResolutionManagement {
   }
 }
 
+rootProject.name = "M-PESA Analyzer Mobile Root"
+includeBuild("android")
 rootProject.name = 'M-PESA Analyzer Mobile Root'
 
 includeBuild('android')

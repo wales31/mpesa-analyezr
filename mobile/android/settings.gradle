@@ -1,6 +1,46 @@
 import org.gradle.api.GradleException
 
 pluginManagement {
+  repositories {
+    gradlePluginPortal()
+    google()
+    mavenCentral()
+  }
+
+  def findExistingDir = { List<File> candidates ->
+    for (def candidate : candidates) {
+      if (candidate.exists() && candidate.isDirectory()) {
+        return candidate.canonicalFile
+      }
+    }
+    return null
+  }
+
+  def resolveExpoAutolinkingPluginDir = {
+    def envOverride = System.getenv("EXPO_AUTOLINKING_GRADLE_PLUGIN_DIR")?.trim()
+    def candidates = []
+
+    if (envOverride) {
+      candidates.add(new File(envOverride))
+    }
+
+    // Supports opening repo root, mobile/, or mobile/android in Android Studio.
+    candidates.add(new File(rootDir, "../node_modules/expo-modules-autolinking/android/expo-gradle-plugin"))
+    candidates.add(new File(rootDir, "../../node_modules/expo-modules-autolinking/android/expo-gradle-plugin"))
+    candidates.add(new File(rootDir, "../../../node_modules/expo-modules-autolinking/android/expo-gradle-plugin"))
+
+    def resolved = findExistingDir(candidates)
+    if (resolved != null) {
+      return resolved
+    }
+
+    throw new GradleException(
+      "Could not locate Expo autolinking Gradle plugin directory. Checked: ${candidates*.path}. " +
+        "Run 'npm install' or set EXPO_AUTOLINKING_GRADLE_PLUGIN_DIR to the plugin directory path."
+    )
+  }
+
+  includeBuild(resolveExpoAutolinkingPluginDir().path)
   def reactNativeGradlePlugin = new File(rootDir, "../node_modules/@react-native/gradle-plugin")
   if (!reactNativeGradlePlugin.exists()) {
     throw new GradleException(
@@ -21,22 +61,21 @@ pluginManagement {
 }
 
 plugins {
-  id("com.facebook.react.settings")
+  id("com.facebook.react.settings") version "0.83.2"
   id("expo-autolinking-settings")
 }
 
 extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
-  if (System.getenv('EXPO_USE_COMMUNITY_AUTOLINKING') == '1') {
+  if (System.getenv("EXPO_USE_COMMUNITY_AUTOLINKING") == "1") {
     ex.autolinkLibrariesFromCommand()
   } else {
     ex.autolinkLibrariesFromCommand(expoAutolinking.rnConfigCommand)
   }
 }
+
 expoAutolinking.useExpoModules()
-
-rootProject.name = 'M-PESA Analyzer Mobile'
-
 expoAutolinking.useExpoVersionCatalog()
 
-include ':app'
-includeBuild(expoAutolinking.reactNativeGradlePlugin)
+rootProject.name = "M-PESA Analyzer Mobile"
+
+include(":app")
