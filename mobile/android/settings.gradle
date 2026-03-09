@@ -1,42 +1,23 @@
 import org.gradle.api.GradleException
 
 pluginManagement {
-  def resolvePackageDir = { String packageRelativePath, String envVarName ->
-    def envOverride = System.getenv(envVarName)?.trim()
-    def candidates = []
-
-    if (envOverride) {
-      candidates.add(new File(envOverride))
-    }
-
-    // Common project layouts: mobile/android, mobile, or monorepo roots.
-    candidates.add(new File(rootDir, "../node_modules/${packageRelativePath}"))
-    candidates.add(new File(rootDir, "../../node_modules/${packageRelativePath}"))
-    candidates.add(new File(rootDir, "../../../node_modules/${packageRelativePath}"))
-
-    for (def candidate : candidates) {
-      if (candidate.exists()) {
-        return candidate.canonicalPath
-      }
-    }
-
+  def reactNativeGradlePlugin = new File(rootDir, "../node_modules/@react-native/gradle-plugin")
+  if (!reactNativeGradlePlugin.exists()) {
     throw new GradleException(
-      "Missing '${packageRelativePath}'. Checked: ${candidates*.path}. " +
-      "Run 'npm install' (or 'yarn install') in your JS project, or set ${envVarName} to the plugin directory."
+      "Missing React Native Gradle plugin at '${reactNativeGradlePlugin}'. " +
+      "Run 'npm install' (or 'yarn install') in the mobile project before opening Android Studio."
     )
   }
+  includeBuild(reactNativeGradlePlugin.absolutePath)
 
-  def reactNativeGradlePlugin = resolvePackageDir(
-    "@react-native/gradle-plugin",
-    "REACT_NATIVE_GRADLE_PLUGIN_DIR"
-  )
-  includeBuild(reactNativeGradlePlugin)
-
-  def expoPluginsPath = resolvePackageDir(
-    "expo-modules-autolinking/android/expo-gradle-plugin",
-    "EXPO_AUTOLINKING_GRADLE_PLUGIN_DIR"
-  )
-  includeBuild(expoPluginsPath)
+  def expoPluginsPath = new File(rootDir, "../node_modules/expo-modules-autolinking/android/expo-gradle-plugin")
+  if (!expoPluginsPath.exists()) {
+    throw new GradleException(
+      "Missing Expo Gradle plugin at '${expoPluginsPath}'. " +
+      "Run 'npm install' (or 'yarn install') in the mobile project before opening Android Studio."
+    )
+  }
+  includeBuild(expoPluginsPath.absolutePath)
 }
 
 plugins {
