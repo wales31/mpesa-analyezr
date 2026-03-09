@@ -7,16 +7,28 @@ pluginManagement {
     mavenCentral()
   }
 
-  def findExistingDir = { List<File> candidates ->
+  def findExistingDir = { List<File> candidates, List<String> requiredPaths = [] ->
     for (def candidate : candidates) {
-      if (candidate.exists() && candidate.isDirectory()) {
+      if (!candidate.exists() || !candidate.isDirectory()) {
+        continue
+      }
+
+      def hasAllRequiredPaths = requiredPaths.every { requiredPath ->
+        new File(candidate, requiredPath).exists()
+      }
+
+      if (hasAllRequiredPaths) {
         return candidate.canonicalFile
       }
     }
     return null
   }
 
-  def resolvePackageDir = { String packageRelativePath, String envVarName ->
+  def resolvePackageDir = {
+    String packageRelativePath,
+    String envVarName,
+    List<String> requiredPaths = []
+  ->
     def envOverride = System.getenv(envVarName)?.trim()
     def candidates = []
 
@@ -29,26 +41,28 @@ pluginManagement {
     candidates.add(new File(rootDir, "../../node_modules/${packageRelativePath}"))
     candidates.add(new File(rootDir, "../../../node_modules/${packageRelativePath}"))
 
-    def resolved = findExistingDir(candidates)
+    def resolved = findExistingDir(candidates, requiredPaths)
     if (resolved != null) {
       return resolved
     }
 
     throw new GradleException(
-      "Could not locate '${packageRelativePath}'. Checked: ${candidates*.path}. " +
+      "Could not locate '${packageRelativePath}' with required paths ${requiredPaths}. Checked: ${candidates*.path}. " +
         "Run 'npm install' or set ${envVarName} to the package directory path."
     )
   }
 
   def reactNativeGradlePlugin = resolvePackageDir(
     "@react-native/gradle-plugin",
-    "REACT_NATIVE_GRADLE_PLUGIN_DIR"
+    "REACT_NATIVE_GRADLE_PLUGIN_DIR",
+    ["settings-plugin", "settings.gradle.kts"]
   )
   includeBuild(reactNativeGradlePlugin)
 
   def expoPluginsPath = resolvePackageDir(
     "expo-modules-autolinking/android/expo-gradle-plugin",
-    "EXPO_AUTOLINKING_GRADLE_PLUGIN_DIR"
+    "EXPO_AUTOLINKING_GRADLE_PLUGIN_DIR",
+    ["build.gradle.kts"]
   )
   includeBuild(expoPluginsPath)
 }
