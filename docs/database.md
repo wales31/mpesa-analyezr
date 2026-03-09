@@ -37,7 +37,15 @@ Set `MPESA_DB_BACKEND=mysql` and provide the `MYSQL_*` variables:
 - `MYSQL_PASSWORD` (default empty)
 - `MYSQL_DATABASE` (default `mpesa_analyzer`)
 
-Note: If any `MYSQL_*` variable is set, the backend will prefer MySQL over SQLite.
+Note: `MYSQL_*` variables alone do not switch backends; set `MPESA_DB_BACKEND=mysql` (or use a full database URL).
+
+
+### Automatic fallback for local development
+
+When MySQL is explicitly configured but unreachable, the backend automatically falls back to SQLite by default so local startup still works.
+
+- Disable fallback by setting `MPESA_DB_FALLBACK_TO_SQLITE=0`
+- Keep fallback enabled with `MPESA_DB_FALLBACK_TO_SQLITE=1` (default)
 
 ## Connecting with the MySQL CLI (Linux / XAMPP)
 
