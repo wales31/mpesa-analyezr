@@ -52,12 +52,15 @@ pluginManagement {
     )
   }
 
-  def reactNativeGradlePlugin = resolvePackageDir(
-    "@react-native/gradle-plugin",
-    "REACT_NATIVE_GRADLE_PLUGIN_DIR",
-    ["settings-plugin", "settings.gradle.kts"]
+  // Resolve the settings plugin directly so Gradle can always discover
+  // `com.facebook.react.settings` even when composite-build plugin discovery
+  // does not traverse subprojects in `@react-native/gradle-plugin`.
+  def reactNativeSettingsPlugin = resolvePackageDir(
+    "@react-native/gradle-plugin/settings-plugin",
+    "REACT_NATIVE_SETTINGS_PLUGIN_DIR",
+    ["build.gradle.kts"]
   )
-  includeBuild(reactNativeGradlePlugin)
+  includeBuild(reactNativeSettingsPlugin)
 
   def expoPluginsPath = resolvePackageDir(
     "expo-modules-autolinking/android/expo-gradle-plugin",
