@@ -1,19 +1,41 @@
+import org.gradle.api.GradleException
+
 pluginManagement {
-  def reactNativeGradlePlugin = new File(
-    providers.exec {
-      workingDir(rootDir)
-      commandLine("node", "--print", "require.resolve('@react-native/gradle-plugin/package.json', { paths: [require.resolve('react-native/package.json')] })")
-    }.standardOutput.asText.get().trim()
-  ).getParentFile().absolutePath
+  def resolvePackageDir = { String packageRelativePath, String envVarName ->
+    def envOverride = System.getenv(envVarName)?.trim()
+    def candidates = []
+
+    if (envOverride) {
+      candidates.add(new File(envOverride))
+    }
+
+    // Common project layouts: mobile/android, mobile, or monorepo roots.
+    candidates.add(new File(rootDir, "../node_modules/${packageRelativePath}"))
+    candidates.add(new File(rootDir, "../../node_modules/${packageRelativePath}"))
+    candidates.add(new File(rootDir, "../../../node_modules/${packageRelativePath}"))
+
+    for (def candidate : candidates) {
+      if (candidate.exists()) {
+        return candidate.canonicalPath
+      }
+    }
+
+    throw new GradleException(
+      "Missing '${packageRelativePath}'. Checked: ${candidates*.path}. " +
+      "Run 'npm install' (or 'yarn install') in your JS project, or set ${envVarName} to the plugin directory."
+    )
+  }
+
+  def reactNativeGradlePlugin = resolvePackageDir(
+    "@react-native/gradle-plugin",
+    "REACT_NATIVE_GRADLE_PLUGIN_DIR"
+  )
   includeBuild(reactNativeGradlePlugin)
-  
-  def expoPluginsPath = new File(
-    providers.exec {
-      workingDir(rootDir)
-      commandLine("node", "--print", "require.resolve('expo-modules-autolinking/package.json', { paths: [require.resolve('expo/package.json')] })")
-    }.standardOutput.asText.get().trim(),
-    "../android/expo-gradle-plugin"
-  ).absolutePath
+
+  def expoPluginsPath = resolvePackageDir(
+    "expo-modules-autolinking/android/expo-gradle-plugin",
+    "EXPO_AUTOLINKING_GRADLE_PLUGIN_DIR"
+  )
   includeBuild(expoPluginsPath)
 }
 
