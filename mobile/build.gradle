@@ -1,0 +1,2 @@
+// Aggregator Gradle project so Android Studio can detect/sync Gradle when opening the `mobile` folder.
+// The actual Android app build remains in `mobile/android` and is included as a composite build.
