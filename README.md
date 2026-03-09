@@ -102,6 +102,8 @@ To use MySQL/MariaDB, set one of:
 - `MPESA_DATABASE_URL` / `DATABASE_URL` (full SQLAlchemy URL), or
 - `MPESA_DB_BACKEND=mysql` and the `MYSQL_*` variables (`MYSQL_HOST`, `MYSQL_PORT`, `MYSQL_USER`, `MYSQL_PASSWORD`, `MYSQL_DATABASE`)
 
+If MySQL is configured but unreachable, startup falls back to SQLite by default. Set `MPESA_DB_FALLBACK_TO_SQLITE=0` to force a hard failure instead.
+
 See `docs/database.md`.
 
 ### API and CORS

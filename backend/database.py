@@ -6,6 +6,7 @@ from typing import AsyncGenerator
 
 from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.engine.url import URL, make_url
+from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session, declarative_base, sessionmaker
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -72,7 +73,54 @@ engine_kwargs: dict[str, object] = {"pool_pre_ping": True}
 if _url.get_backend_name() == "sqlite":
     engine_kwargs["connect_args"] = {"check_same_thread": False}
 
-engine = create_engine(DATABASE_URL, **engine_kwargs)
+def _is_truthy(value: str | None) -> bool:
+    return (value or "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _should_fallback_to_sqlite() -> bool:
+    """
+    Allow local development to keep working when a configured MySQL server
+    is unavailable.
+
+    Set MPESA_DB_FALLBACK_TO_SQLITE=0 to disable this behavior.
+    """
+
+    raw = os.getenv("MPESA_DB_FALLBACK_TO_SQLITE")
+    if raw is None:
+        return True
+    return _is_truthy(raw)
+
+
+def _create_engine_with_optional_fallback() -> tuple[str, object]:
+    primary_url = DATABASE_URL
+    primary_engine = create_engine(primary_url, **engine_kwargs)
+
+    if _url.get_backend_name() not in {"mysql", "mariadb"}:
+        return primary_url, primary_engine
+
+    if not _should_fallback_to_sqlite():
+        return primary_url, primary_engine
+
+    try:
+        with primary_engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        return primary_url, primary_engine
+    except OperationalError:
+        sqlite_url = DEFAULT_SQLITE_URL
+        sqlite_engine = create_engine(
+            sqlite_url,
+            pool_pre_ping=True,
+            connect_args={"check_same_thread": False},
+        )
+        print(
+            "Warning: Unable to connect to configured MySQL database; "
+            "falling back to SQLite. "
+            "Set MPESA_DB_FALLBACK_TO_SQLITE=0 to disable fallback."
+        )
+        return sqlite_url, sqlite_engine
+
+
+DATABASE_URL, engine = _create_engine_with_optional_fallback()
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
