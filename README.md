@@ -1,7 +1,7 @@
 # M-PESA Spending Analyzer (v1)
 
 Parse M-PESA SMS messages into structured transactions, categorize them, store them in a local database, and surface
-spending insights through a lightweight web UI and an in-progress mobile app foundation.
+spending insights through a lightweight web UI and a mobile app foundation.
 
 ## Current Status (2026-03-08)
 
