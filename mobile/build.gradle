@@ -1,4 +1,2 @@
-// Gradle aggregator project for Android Studio when opening the `mobile` folder.
-// The Android app itself is located at `mobile/android` and included via includeBuild.
-// Aggregator Gradle project so Android Studio can detect/sync Gradle when opening the `mobile` folder.
-// The actual Android app build remains in `mobile/android` and is included as a composite build.
+// Aggregator Gradle project so Android Studio can open the `mobile` folder
+// while keeping the actual Android app build in `mobile/android`.

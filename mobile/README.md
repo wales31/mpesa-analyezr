@@ -16,6 +16,27 @@ This folder contains the React Native Android/iOS app for M-PESA Analyzer.
 
 See feature parity tracker: `mobile/FEATURE_PARITY_PROGRESS.md`.
 
+## Android Studio setup
+
+This project is already prebuilt for Android. You can import it into Android Studio without running `expo prebuild`.
+
+1. Install Java, Android Studio, and the Android SDK.
+2. From `mobile/`, install JavaScript dependencies:
+
+```bash
+npm install
+```
+
+3. Open Android Studio and choose one of these folders:
+
+- `mobile/` if you want Android Studio to detect the lightweight wrapper project first
+- `mobile/android/` if you want to open the Android app module directly
+
+4. Let Gradle sync finish. This project resolves Expo and React Native Gradle plugins from `node_modules`, so the sync will fail until `npm install` has completed.
+5. Build or run the `app` configuration from Android Studio.
+
+If Android Studio cannot find the SDK, set it in the IDE or create `mobile/android/local.properties` with your local SDK path.
+
 ## Run locally (LAN)
 
 1. Start backend API from repo root:
@@ -80,6 +101,13 @@ This runs:
 - `adb reverse tcp:8081 tcp:8081` (Metro)
 - `adb reverse tcp:8000 tcp:8000` (Backend API)
 - `expo start --dev-client --localhost`
+
+You can then run the app from Android Studio against the same Metro server, or build from the terminal with:
+
+```bash
+cd mobile/android
+./gradlew assembleDebug
+```
 
 6. In the app, set API base URL to:
 
