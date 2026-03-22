@@ -35,7 +35,7 @@ npm install
 4. Let Gradle sync finish. This project resolves Expo and React Native Gradle plugins from `node_modules`, so the sync will fail until `npm install` has completed.
 5. Build or run the `app` configuration from Android Studio.
 
-If Android Studio cannot find the SDK, set it in the IDE or create `mobile/android/local.properties` with your local SDK path.
+If Android Studio cannot find the SDK, set `ANDROID_HOME` or `ANDROID_SDK_ROOT` before syncing so Gradle can auto-create `mobile/android/local.properties`, or create that file manually with your local SDK path.
 
 ## Run locally (LAN)
 
