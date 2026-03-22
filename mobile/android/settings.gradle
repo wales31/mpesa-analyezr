@@ -74,8 +74,19 @@ pluginManagement {
 }
 
 plugins {
+  id("org.gradle.toolchains.foojay-resolver") version "0.10.0"
   id("com.facebook.react.settings")
   id("expo-autolinking-settings")
+}
+
+toolchainManagement {
+  jvm {
+    javaRepositories {
+      repository("foojay") {
+        resolverClass = org.gradle.toolchains.foojay.FoojayToolchainResolver
+      }
+    }
+  }
 }
 
 extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->

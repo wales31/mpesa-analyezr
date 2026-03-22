@@ -6,7 +6,7 @@ buildscript {
     minSdkVersion = Integer.parseInt(findProperty('android.minSdkVersion') ?: '24')
     compileSdkVersion = Integer.parseInt(findProperty('android.compileSdkVersion') ?: '35')
     targetSdkVersion = Integer.parseInt(findProperty('android.targetSdkVersion') ?: '35')
-    ndkVersion = findProperty('android.ndkVersion') ?: '27.1.12297006'
+    ndkVersion = findProperty('android.ndkVersion') ?: '26.1.10909125'
     kotlinVersion = findProperty('android.kotlinVersion') ?: '2.0.21'
   }
 
@@ -25,9 +25,61 @@ allprojects {
   repositories {
     google()
     mavenCentral()
-    maven { url 'https://www.jitpack.io' }
+    maven { url = uri('https://www.jitpack.io') }
   }
 }
+
+def reactNativeGraphicsConversionsTarget = 'return std::format("{}%", dimension.value);'
+def reactNativeGraphicsConversionsReplacement = 'return std::to_string(dimension.value) + "%";'
+
+def patchReactNativeGraphicsConversionsFile = { File candidate, List<File> patchedFiles ->
+  if (!candidate.exists() || !candidate.isFile()) {
+    return
+  }
+
+  def original = candidate.getText('UTF-8')
+  if (!original.contains(reactNativeGraphicsConversionsTarget)) {
+    return
+  }
+
+  candidate.write(original.replace(reactNativeGraphicsConversionsTarget, reactNativeGraphicsConversionsReplacement), 'UTF-8')
+  patchedFiles << candidate
+}
+
+tasks.register('patchReactNativeGraphicsConversions') {
+  doLast {
+    def patchedFiles = []
+    def projectRoot = rootDir.parentFile
+
+    patchReactNativeGraphicsConversionsFile(new File(projectRoot, 'node_modules/react-native/ReactCommon/react/renderer/core/graphicsConversions.h'), patchedFiles)
+
+    def gradleCacheDir = new File(gradle.gradleUserHomeDir, 'caches')
+    if (gradleCacheDir.exists()) {
+      fileTree(dir: gradleCacheDir, includes: [
+              '**/transformed/react-android-*/prefab/modules/reactnative/include/react/renderer/core/graphicsConversions.h',
+              '**/transformed/jetified-react-android-*/prefab/modules/reactnative/include/react/renderer/core/graphicsConversions.h'
+      ]).files.each { file ->
+        patchReactNativeGraphicsConversionsFile(file, patchedFiles)
+      }
+    }
+
+    if (patchedFiles.isEmpty()) {
+      println('[patchReactNativeGraphicsConversions] no matching files needed patching.')
+    } else {
+      println("[patchReactNativeGraphicsConversions] patched ${patchedFiles.size()} file(s):")
+      patchedFiles.each { println(" - ${it}") }
+    }
+  }
+}
+
+gradle.projectsEvaluated {
+  allprojects { project ->
+    project.tasks.matching { task ->
+      task.name == 'preBuild' || task.name.startsWith('configureCMake') || task.name.startsWith('externalNativeBuild')
+    }.configureEach { task ->
+      task.dependsOn(rootProject.tasks.named('patchReactNativeGraphicsConversions'))
+    }
+  }
 
 apply plugin: "expo-root-project"
 apply plugin: "com.facebook.react.rootproject"

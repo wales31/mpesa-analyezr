@@ -8,6 +8,10 @@ pluginManagement {
   }
 }
 
+plugins {
+  id("org.gradle.toolchains.foojay-resolver") version "0.10.0"
+}
+
 dependencyResolutionManagement {
   repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
   repositories {
@@ -18,3 +22,13 @@ dependencyResolutionManagement {
 
 rootProject.name = "M-PESA Analyzer Mobile Root"
 includeBuild("android")
+
+toolchainManagement {
+  jvm {
+    javaRepositories {
+      repository("foojay") {
+        resolverClass = org.gradle.toolchains.foojay.FoojayToolchainResolver
+      }
+    }
+  }
+}

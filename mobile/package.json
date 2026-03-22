@@ -13,12 +13,13 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "typecheck": "tsc --noEmit",
-    "postinstall": "node scripts/patch-react-native-gradle-plugin.js"
+    "postinstall": "node scripts/patch-react-native-gradle-plugin.js && node scripts/patch-react-native-graphics-conversions.js"
   },
   "dependencies": {
     "@expo/metro-runtime": "~55.0.6",
     "@react-native-async-storage/async-storage": "2.2.0",
     "expo": "^55.0.4",
+    "expo-modules-core": "^55.0.17",
     "expo-secure-store": "~55.0.8",
     "expo-status-bar": "~55.0.4",
     "react": "19.2.0",
