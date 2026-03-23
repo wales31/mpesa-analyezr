@@ -39,26 +39,47 @@ If Android Studio cannot find the SDK, set `ANDROID_HOME` or `ANDROID_SDK_ROOT` 
 
 ## Run locally (LAN)
 
+By default, `npm run start:lan` now starts Expo in **development client** mode so you do not get blocked by an outdated Expo Go install when the project SDK is newer than the store version on your device.
+
 1. Start backend API from repo root:
 
 ```bash
 uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-2. Start mobile app:
+2. Install JavaScript dependencies and build the native app once for the device/emulator you want to use:
 
 ```bash
 cd mobile
 npm install
+npm run android
+```
+
+Use `npm run ios` instead when targeting iOS.
+
+3. Start Metro over LAN:
+
+```bash
+cd mobile
 npm run start:lan
 ```
 
-3. Open on device/emulator:
+4. Open the installed development build on your device/emulator.
 
-- Expo Go on Android/iOS: scan QR from Expo terminal
 - Android emulator default API base: `http://10.0.2.2:8000`
 - iOS simulator default API base: `http://127.0.0.1:8000`
 - Physical phone API base: set your LAN IP in-app, for example `http://192.168.1.24:8000`
+
+### Expo Go fallback
+
+If you have the matching Expo Go version installed already and want the QR-code flow, use:
+
+```bash
+cd mobile
+npm run start:go
+```
+
+If Expo Go shows **"Project is incompatible with this version of Expo Go"**, either update Expo Go from the App Store / Play Store or use the development-client flow above.
 
 ## Run on physical Android over USB (recommended for reliable progress view)
 
