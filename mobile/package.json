@@ -5,7 +5,8 @@
   "main": "expo/AppEntry.js",
   "scripts": {
     "start": "expo start",
-    "start:lan": "expo start --lan",
+    "start:lan": "expo start --dev-client --lan",
+    "start:go": "expo start --go --lan",
     "start:dev-client": "expo start --dev-client --localhost",
     "usb:reverse": "adb reverse tcp:8081 tcp:8081 && adb reverse tcp:8000 tcp:8000",
     "start:usb": "npm run usb:reverse && npm run start:dev-client",
