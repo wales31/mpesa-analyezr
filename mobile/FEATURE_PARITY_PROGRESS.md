@@ -1,12 +1,12 @@
-# Web-to-Android Feature Parity Progress
+# Web-to-Mobile Feature Parity Progress
 
-Last updated: 2026-03-03
+Last updated: 2026-03-23
 
-This checklist tracks the work needed to bring Android app features to parity with the web app.
+This checklist tracks the work needed to bring the Flutter mobile app to parity with the web app.
 
 ## 0) Foundation
 
-- [x] React Native app scaffolded (Expo + TypeScript)
+- [x] Flutter app scaffolded
 - [x] Auth register/login/me flow
 - [x] Secure token persistence
 - [x] Summary screen (`/summary`)
@@ -15,7 +15,7 @@ This checklist tracks the work needed to bring Android app features to parity wi
 ## 1) Navigation + app structure
 
 - [ ] Add tab/stack navigation (Auth, Dashboard, Ingestion, Transactions, Insights, Budget, Notifications)
-- [ ] Split shared API hooks/services from screen components
+- [ ] Split feature controllers further as app surface expands
 - [ ] Add shared loading/error/empty state components
 
 ## 2) Ingestion feature parity (from web `spending.html`)
@@ -65,7 +65,7 @@ This checklist tracks the work needed to bring Android app features to parity wi
 
 ## Next sprint recommendation
 
-1. Implement navigation shell and screen placeholders.
+1. Add app navigation shell and placeholders for remaining features.
 2. Implement ingestion screen (`/analyze`, `/analyze/bulk`, `/ingestion/messages`).
 3. Implement transactions screen with date filters and pagination/limit.
 4. Implement insights + notifications.
