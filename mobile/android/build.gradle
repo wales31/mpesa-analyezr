@@ -80,6 +80,7 @@ gradle.projectsEvaluated {
       task.dependsOn(rootProject.tasks.named('patchReactNativeGraphicsConversions'))
     }
   }
+}
 
 apply plugin: "expo-root-project"
 apply plugin: "com.facebook.react.rootproject"
