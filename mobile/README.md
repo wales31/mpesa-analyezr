@@ -57,6 +57,35 @@ flutter devices
 flutter run -d <device-id>
 ```
 
+## Build an Android APK (phone-installable)
+
+From the `mobile/` directory:
+
+```bash
+flutter pub get
+flutter build apk --release
+```
+
+APK output path:
+
+```text
+mobile/build/app/outputs/flutter-apk/app-release.apk
+```
+
+Install on your phone:
+
+1. Copy `app-release.apk` to the phone (USB, AirDrop-equivalent, cloud drive, or messaging app).
+2. On Android, allow installs from unknown sources for the app you used to open the APK.
+3. Tap the APK and install.
+
+If your backend runs on your laptop/server over local network, set **API Base URL** in the app to your machine LAN IP (example: `http://192.168.1.24:8000`).
+
+### Phase-1 APK notes
+
+- This APK is suitable for direct install/testing.
+- Android cleartext HTTP is enabled so the app can call local `http://` API endpoints during development.
+- For Play Store publishing later, switch to HTTPS APIs and configure a proper release signing key.
+
 ### API base defaults
 
 - Android emulator default API base: `http://10.0.2.2:8000`
