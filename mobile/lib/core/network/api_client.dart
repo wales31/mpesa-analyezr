@@ -45,6 +45,53 @@ class ApiClient {
     return SummaryResponse.fromJson(response);
   }
 
+  Future<TransactionsResponse> listTransactions({
+    required String apiBase,
+    required String token,
+    int limit = 50,
+  }) async {
+    final response = await _request(
+      apiBase: apiBase,
+      path: '/transactions?limit=$limit',
+      token: token,
+    );
+    return TransactionsResponse.fromJson(response);
+  }
+
+  Future<BudgetLimitResponse?> getBudgetLimit({
+    required String apiBase,
+    required String token,
+  }) async {
+    try {
+      final response = await _request(
+        apiBase: apiBase,
+        path: '/budget/limit',
+        token: token,
+      );
+      return BudgetLimitResponse.fromJson(response);
+    } on ApiError catch (error) {
+      if (error.statusCode == 404) return null;
+      rethrow;
+    }
+  }
+
+  Future<BudgetLimitResponse> upsertBudgetLimit({
+    required String apiBase,
+    required String token,
+    required double monthlyBudget,
+    String currency = 'KES',
+  }) async {
+    final response = await _request(
+      apiBase: apiBase,
+      path: '/budget/limit',
+      method: 'PUT',
+      token: token,
+      body: {'monthly_budget': monthlyBudget, 'currency': currency},
+    );
+    return BudgetLimitResponse.fromJson(response);
+  }
+
+
   Future<Map<String, dynamic>> _request({
     required String apiBase,
     required String path,

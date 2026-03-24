@@ -52,7 +52,11 @@ class SummaryCategory {
 }
 
 class SummaryResponse {
-  const SummaryResponse({required this.currency, required this.totalSpent, required this.categories});
+  const SummaryResponse({
+    required this.currency,
+    required this.totalSpent,
+    required this.categories,
+  });
 
   final String currency;
   final double totalSpent;
@@ -64,5 +68,67 @@ class SummaryResponse {
         categories: ((json['categories'] as List<dynamic>? ?? const [])
             .map((item) => SummaryCategory.fromJson(item as Map<String, dynamic>))
             .toList()),
+      );
+}
+
+class TransactionItem {
+  const TransactionItem({
+    required this.id,
+    required this.amount,
+    required this.currency,
+    required this.category,
+    required this.direction,
+    required this.recipient,
+    required this.occurredAt,
+  });
+
+  final int id;
+  final double amount;
+  final String currency;
+  final String category;
+  final String direction;
+  final String? recipient;
+  final DateTime? occurredAt;
+
+  factory TransactionItem.fromJson(Map<String, dynamic> json) => TransactionItem(
+        id: json['id'] as int,
+        amount: (json['amount'] as num).toDouble(),
+        currency: json['currency'] as String? ?? 'KES',
+        category: json['category'] as String? ?? 'other',
+        direction: json['direction'] as String? ?? 'expense',
+        recipient: json['recipient'] as String?,
+        occurredAt: json['occurred_at'] == null
+            ? null
+            : DateTime.tryParse(json['occurred_at'] as String),
+      );
+}
+
+class TransactionsResponse {
+  const TransactionsResponse({required this.count, required this.transactions});
+
+  final int count;
+  final List<TransactionItem> transactions;
+
+  factory TransactionsResponse.fromJson(Map<String, dynamic> json) {
+    final items = (json['transactions'] as List<dynamic>? ?? const [])
+        .map((item) => TransactionItem.fromJson(item as Map<String, dynamic>))
+        .toList();
+    return TransactionsResponse(
+      count: json['count'] as int? ?? items.length,
+      transactions: items,
+    );
+  }
+}
+
+class BudgetLimitResponse {
+  const BudgetLimitResponse({required this.monthlyBudget, required this.currency});
+
+  final double monthlyBudget;
+  final String currency;
+
+  factory BudgetLimitResponse.fromJson(Map<String, dynamic> json) =>
+      BudgetLimitResponse(
+        monthlyBudget: (json['monthly_budget'] as num).toDouble(),
+        currency: json['currency'] as String? ?? 'KES',
       );
 }

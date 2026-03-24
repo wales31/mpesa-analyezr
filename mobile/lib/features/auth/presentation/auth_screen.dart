@@ -12,21 +12,13 @@ class AuthScreen extends ConsumerStatefulWidget {
 
 class _AuthScreenState extends ConsumerState<AuthScreen> {
   bool _isLogin = true;
-  late final TextEditingController _apiBaseController;
   final _identifierController = TextEditingController();
   final _emailController = TextEditingController();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
 
   @override
-  void initState() {
-    super.initState();
-    _apiBaseController = TextEditingController(text: ref.read(authControllerProvider).apiBase);
-  }
-
-  @override
   void dispose() {
-    _apiBaseController.dispose();
     _identifierController.dispose();
     _emailController.dispose();
     _usernameController.dispose();
@@ -38,125 +30,145 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(authControllerProvider);
     final controller = ref.read(authControllerProvider.notifier);
-    _apiBaseController.value = _apiBaseController.value.copyWith(text: state.apiBase, selection: TextSelection.collapsed(offset: state.apiBase.length));
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF3F6F7),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text('M-PESA Analyzer', style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 4),
-              Text('Phase 1 Flutter foundation', style: Theme.of(context).textTheme.bodyMedium),
-              const SizedBox(height: 16),
-              _Card(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text('API Base URL', style: Theme.of(context).textTheme.titleMedium),
-                    const SizedBox(height: 8),
-                    TextField(controller: _apiBaseController, keyboardType: TextInputType.url, decoration: const InputDecoration(hintText: 'http://192.168.1.24:8000')),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton(
-                            onPressed: () => controller.updateApiBase(_apiBaseController.text),
-                            child: const Text('Save API Base'),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 460),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: Card(
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(24),
+                  side: const BorderSide(color: Color(0xFFDDE5E7)),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const Icon(Icons.account_balance_wallet_rounded,
+                          color: Color(0xFF0D8A43), size: 44),
+                      const SizedBox(height: 12),
+                      Text(
+                        'M-PESA Analyzer',
+                        textAlign: TextAlign.center,
+                        style:
+                            Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  color: const Color(0xFF11311F),
+                                ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Understand your spending in seconds.',
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyMedium
+                            ?.copyWith(color: const Color(0xFF5E6E66)),
+                      ),
+                      const SizedBox(height: 20),
+                      if (_isLogin) ...[
+                        TextField(
+                          controller: _identifierController,
+                          keyboardType: TextInputType.emailAddress,
+                          decoration: const InputDecoration(
+                            labelText: 'Phone, email or username',
+                            prefixIcon: Icon(Icons.person_outline_rounded),
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: OutlinedButton(
-                            onPressed: () => controller.testApiBase(_apiBaseController.text),
-                            child: const Text('Test API'),
+                      ] else ...[
+                        TextField(
+                          controller: _emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          decoration: const InputDecoration(
+                            labelText: 'Email',
+                            prefixIcon: Icon(Icons.mail_outline_rounded),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        TextField(
+                          controller: _usernameController,
+                          decoration: const InputDecoration(
+                            labelText: 'Username',
+                            prefixIcon: Icon(Icons.person_outline_rounded),
                           ),
                         ),
                       ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12),
-              SegmentedButton<bool>(
-                segments: const [
-                  ButtonSegment<bool>(value: true, label: Text('Login')),
-                  ButtonSegment<bool>(value: false, label: Text('Register')),
-                ],
-                selected: {_isLogin},
-                onSelectionChanged: (selection) => setState(() => _isLogin = selection.first),
-              ),
-              const SizedBox(height: 12),
-              _Card(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    if (_isLogin) ...[
-                      TextField(controller: _identifierController, decoration: const InputDecoration(labelText: 'Email or Username')),
                       const SizedBox(height: 12),
-                    ] else ...[
-                      TextField(controller: _emailController, keyboardType: TextInputType.emailAddress, decoration: const InputDecoration(labelText: 'Email')),
+                      TextField(
+                        controller: _passwordController,
+                        obscureText: true,
+                        decoration: const InputDecoration(
+                          labelText: 'Password',
+                          prefixIcon: Icon(Icons.lock_outline_rounded),
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      FilledButton(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: const Color(0xFF0D8A43),
+                          minimumSize: const Size.fromHeight(52),
+                        ),
+                        onPressed: state.busy
+                            ? null
+                            : () async {
+                                if (_isLogin) {
+                                  await controller.login(
+                                    identifier: _identifierController.text,
+                                    password: _passwordController.text,
+                                  );
+                                } else {
+                                  await controller.register(
+                                    email: _emailController.text,
+                                    username: _usernameController.text,
+                                    password: _passwordController.text,
+                                  );
+                                }
+                              },
+                        child: state.busy
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : Text(_isLogin ? 'Sign In' : 'Create Account'),
+                      ),
                       const SizedBox(height: 12),
-                      TextField(controller: _usernameController, decoration: const InputDecoration(labelText: 'Username')),
-                      const SizedBox(height: 12),
+                      TextButton(
+                        onPressed: () => setState(() => _isLogin = !_isLogin),
+                        child: Text(_isLogin
+                            ? 'Create a new account'
+                            : 'I already have an account'),
+                      ),
+                      if (state.errorMessage != null) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          state.errorMessage!,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: Colors.red),
+                        ),
+                      ],
+                      if (state.infoMessage != null) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          state.infoMessage!,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: Color(0xFF0D8A43)),
+                        ),
+                      ],
                     ],
-                    TextField(controller: _passwordController, obscureText: true, decoration: const InputDecoration(labelText: 'Password')),
-                    const SizedBox(height: 16),
-                    FilledButton(
-                      onPressed: state.busy
-                          ? null
-                          : () async {
-                              if (_isLogin) {
-                                await controller.login(
-                                  identifier: _identifierController.text,
-                                  password: _passwordController.text,
-                                  apiBaseOverride: _apiBaseController.text,
-                                );
-                              } else {
-                                await controller.register(
-                                  email: _emailController.text,
-                                  username: _usernameController.text,
-                                  password: _passwordController.text,
-                                  apiBaseOverride: _apiBaseController.text,
-                                );
-                              }
-                            },
-                      child: state.busy
-                          ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                          : Text(_isLogin ? 'Sign In' : 'Create Account'),
-                    ),
-                  ],
+                  ),
                 ),
               ),
-              if (state.errorMessage != null) ...[
-                const SizedBox(height: 12),
-                Text(state.errorMessage!, style: const TextStyle(color: Colors.red)),
-              ],
-              if (state.infoMessage != null) ...[
-                const SizedBox(height: 12),
-                Text(state.infoMessage!, style: const TextStyle(color: Colors.green)),
-              ],
-            ],
+            ),
           ),
         ),
       ),
-    );
-  }
-}
-
-class _Card extends StatelessWidget {
-  const _Card({required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: const BorderSide(color: Color(0xFFD6DEE8))),
-      child: Padding(padding: const EdgeInsets.all(16), child: child),
     );
   }
 }
