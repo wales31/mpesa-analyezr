@@ -91,6 +91,30 @@ class ApiClient {
     return BudgetLimitResponse.fromJson(response);
   }
 
+  Future<IngestMessagesResponse> ingestMessages({
+    required String apiBase,
+    required String token,
+    required List<IngestionMessage> messages,
+    String mode = 'inbox_sync',
+  }) async {
+    if (messages.isEmpty) {
+      throw ApiError('No messages found to ingest.');
+    }
+
+    final response = await _request(
+      apiBase: apiBase,
+      path: '/ingestion/messages',
+      method: 'POST',
+      token: token,
+      body: {
+        'mode': mode,
+        'source': 'android_sms',
+        'messages': messages.map((message) => message.toJson()).toList(),
+      },
+    );
+
+    return IngestMessagesResponse.fromJson(response);
+  }
 
   Future<Map<String, dynamic>> _request({
     required String apiBase,

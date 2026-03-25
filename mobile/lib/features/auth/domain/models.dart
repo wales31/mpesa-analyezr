@@ -132,3 +132,54 @@ class BudgetLimitResponse {
         currency: json['currency'] as String? ?? 'KES',
       );
 }
+
+
+class IngestionMessage {
+  const IngestionMessage({
+    required this.message,
+    this.sourceMessageId,
+    this.source,
+    this.userNote,
+  });
+
+  final String message;
+  final String? sourceMessageId;
+  final String? source;
+  final String? userNote;
+
+  Map<String, dynamic> toJson() => {
+        'message': message,
+        if (sourceMessageId != null && sourceMessageId!.isNotEmpty)
+          'source_message_id': sourceMessageId,
+        if (source != null && source!.isNotEmpty) 'source': source,
+        if (userNote != null && userNote!.isNotEmpty) 'user_note': userNote,
+      };
+}
+
+class IngestMessagesResponse {
+  const IngestMessagesResponse({
+    required this.mode,
+    required this.batchId,
+    required this.total,
+    required this.stored,
+    required this.duplicates,
+    required this.failed,
+  });
+
+  final String mode;
+  final String batchId;
+  final int total;
+  final int stored;
+  final int duplicates;
+  final int failed;
+
+  factory IngestMessagesResponse.fromJson(Map<String, dynamic> json) =>
+      IngestMessagesResponse(
+        mode: json['mode'] as String? ?? 'inbox_sync',
+        batchId: json['batch_id'] as String? ?? '',
+        total: json['total'] as int? ?? 0,
+        stored: json['stored'] as int? ?? 0,
+        duplicates: json['duplicates'] as int? ?? 0,
+        failed: json['failed'] as int? ?? 0,
+      );
+}
