@@ -1,9 +1,11 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/network/api_client.dart';
+import '../../../core/platform/sms_reader_service.dart';
 import '../../auth/application/auth_controller.dart';
 import '../../auth/domain/models.dart';
 
@@ -46,8 +48,10 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   int _currentTab = 0;
   bool _darkModeEnabled = false;
+  bool _syncingSms = false;
   late final TextEditingController _apiBaseController;
   late final TextEditingController _budgetController;
+  final SmsReaderService _smsReaderService = SmsReaderService();
 
   @override
   void initState() {
@@ -88,6 +92,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       appBar: AppBar(
         title: const Text('M-PESA Analyzer'),
         actions: [
+          IconButton(
+            tooltip: 'Sync SMS',
+            onPressed: _syncingSms ? null : _syncSms,
+            icon: _syncingSms
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.sms_rounded),
+          ),
           IconButton(
             tooltip: 'Refresh',
             onPressed: () => _refreshAll(controller),
@@ -694,6 +709,62 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         );
       },
     );
+  }
+
+
+  Future<void> _syncSms() async {
+    final authState = ref.read(authControllerProvider);
+    final token = authState.token;
+    if (token == null || token.isEmpty) {
+      _showMessage('Please sign in before syncing SMS messages.');
+      return;
+    }
+
+    final permission = await Permission.sms.request();
+    if (!permission.isGranted) {
+      _showMessage('SMS permission is required to read M-PESA messages.');
+      return;
+    }
+
+    setState(() => _syncingSms = true);
+    try {
+      final smsItems = await _smsReaderService.readRecentMpesaSms(limit: 120);
+      if (smsItems.isEmpty) {
+        _showMessage('No M-PESA messages found in your inbox.');
+        return;
+      }
+
+      final response = await ref.read(apiClientProvider).ingestMessages(
+            apiBase: authState.apiBase,
+            token: token,
+            messages: smsItems
+                .map((sms) => IngestionMessage(
+                      message: sms.body,
+                      sourceMessageId: sms.id,
+                      source: 'android_sms',
+                    ))
+                .toList(),
+          );
+
+      await _refreshAll(ref.read(authControllerProvider.notifier));
+      _showMessage(
+        'SMS sync complete: ${response.stored} stored, '
+        '${response.duplicates} duplicates, ${response.failed} failed.',
+      );
+    } catch (error) {
+      _showMessage('SMS sync failed: $error');
+    } finally {
+      if (mounted) {
+        setState(() => _syncingSms = false);
+      }
+    }
+  }
+
+  void _showMessage(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..clearSnackBars()
+      ..showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> _refreshAll(AuthController controller) async {
