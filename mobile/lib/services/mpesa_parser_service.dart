@@ -1,4 +1,5 @@
 import '../models/parsed_mpesa_message.dart';
+import '../enums/transaction_type.dart';
 import '../utils/mpesa_patterns.dart';
 
 class TransactionTypeDetection {

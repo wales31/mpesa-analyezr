@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mpesa_mobile/enums/transaction_type.dart';
 import 'package:mpesa_mobile/models/parsed_mpesa_message.dart';
 import 'package:mpesa_mobile/services/mpesa_parser_service.dart';
 
