@@ -1,8 +1,8 @@
 # Mobile App (Flutter)
 
-This folder now contains the Flutter mobile client for M-PESA Analyzer.
+This folder contains the Flutter mobile client for M-PESA Analyzer.
 
-## Current scope (Phase 1 foundation)
+## Current scope 
 
 - Flutter scaffold for Android/iOS development
 - API base URL configuration in-app

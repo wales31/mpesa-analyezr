@@ -658,8 +658,8 @@ class _TrendPainter extends CustomPainter {
 
     final path = Path();
     for (var i = 0; i < values.length; i++) {
-      final x = values.length == 1 ? 0 : (i / (values.length - 1)) * size.width;
-      final y = size.height - ((values[i] / maxValue) * (size.height - 16)) - 2;
+      final double x = values.length == 1 ? 0 : (i / (values.length - 1)) * size.width;
+      final double y = size.height - ((values[i] / maxValue) * (size.height - 16)) - 2;
       if (i == 0) {
         path.moveTo(x, y);
       } else {
