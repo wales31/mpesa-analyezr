@@ -63,7 +63,34 @@ class TransactionOut(BaseModel):
     category: str
     direction: str
     transaction_type: Optional[str] = None
+    transaction_sub_type: Optional[str] = None
     recipient: Optional[str] = None
+    merchant_name: Optional[str] = None
+    contact_name: Optional[str] = None
+    paybill_number: Optional[str] = None
+    till_number: Optional[str] = None
+    account_reference: Optional[str] = None
+    raw_message: Optional[str] = None
+    normalized_message: Optional[str] = None
+    confidence_score: Optional[float] = None
+    classification_source: Optional[str] = None
+    matched_rule: Optional[str] = None
+    matched_priority_tier: Optional[int] = None
+    matched_key_type: Optional[str] = None
+    correction_scope: Optional[str] = None
+    correction_match_basis: Optional[str] = None
+    canonical_entity_name: Optional[str] = None
+    normalized_text_signature: Optional[str] = None
+    confidence_band: Optional[str] = None
+    confidence_breakdown: Optional[dict[str, float]] = None
+    confidence_reason_summary: Optional[str] = None
+    conflict_flag: Optional[bool] = None
+    conflict_reasons: list[str] = Field(default_factory=list)
+    competing_rules: list[str] = Field(default_factory=list)
+    needs_review: Optional[bool] = None
+    category_suggestions: list[str] = Field(default_factory=list)
+    user_corrected_category: Optional[str] = None
+    user_correction_key: Optional[str] = None
     reference: Optional[str] = None
     occurred_at: Optional[datetime] = None
     date: Optional[str] = None
@@ -128,6 +155,20 @@ class InsightsResponse(BaseModel):
 
 class UpdateCategoryRequest(BaseModel):
     category: str = Field(..., min_length=1, max_length=64)
+    apply_to_similar: bool = True
+    correction_scope: Optional[
+        Literal[
+            "merchant_plus_account",
+            "paybill_plus_account",
+            "till_only",
+            "merchant_only",
+            "contact_only",
+            "paybill_only",
+            "normalized_text_exact",
+            "broad",
+        ]
+    ] = None
+    broad_apply: bool = False
 
 
 class BudgetLimitUpsertRequest(BaseModel):

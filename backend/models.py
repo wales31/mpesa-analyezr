@@ -91,6 +91,9 @@ class Transaction(Base):
         Index("ix_transactions_source_message_id", "user_id", "source_message_id"),
         Index("ix_transactions_ingestion_mode", "ingestion_mode"),
         Index("ix_transactions_ingestion_batch_id", "ingestion_batch_id"),
+        Index("ix_transactions_paybill_number", "paybill_number"),
+        Index("ix_transactions_till_number", "till_number"),
+        Index("ix_transactions_user_correction_key", "user_id", "user_correction_key"),
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
@@ -98,6 +101,8 @@ class Transaction(Base):
     amount: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
     currency: Mapped[str] = mapped_column(String(8), nullable=False, default="KES")
     user_id: Mapped[str] = mapped_column(String(64), nullable=False, default="default")
+    raw_message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    normalized_message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     # direction is used for budgeting math (income vs expense vs transfer).
     direction: Mapped[str] = mapped_column(String(16), nullable=False, default="expense")
@@ -106,13 +111,38 @@ class Transaction(Base):
 
     # Raw-ish type from M-PESA context (e.g., sent, received, pay, paybill, withdraw, deposit).
     transaction_type: Mapped[Optional[str]] = mapped_column(String(32), nullable=True)
+    transaction_sub_type: Mapped[Optional[str]] = mapped_column(String(32), nullable=True)
+    confidence_score: Mapped[Optional[Decimal]] = mapped_column(Numeric(4, 3), nullable=True)
+    classification_source: Mapped[Optional[str]] = mapped_column(String(32), nullable=True)
+    matched_rule: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    category_suggestions: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    matched_priority_tier: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    matched_key_type: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    correction_scope: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    correction_match_basis: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    canonical_entity_name: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
+    normalized_text_signature: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    confidence_band: Mapped[Optional[str]] = mapped_column(String(16), nullable=True)
+    confidence_breakdown: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    confidence_reason_summary: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    conflict_flag: Mapped[Optional[bool]] = mapped_column(Boolean, nullable=True)
+    conflict_reasons: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    competing_rules: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    needs_review: Mapped[Optional[bool]] = mapped_column(Boolean, nullable=True)
 
     recipient: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
+    merchant_name: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
+    contact_name: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
+    paybill_number: Mapped[Optional[str]] = mapped_column(String(32), nullable=True)
+    till_number: Mapped[Optional[str]] = mapped_column(String(32), nullable=True)
+    account_reference: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
     reference: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
     occurred_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # User-provided context (what the money was for) to improve categorization.
     user_note: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    user_corrected_category: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    user_correction_key: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
 
     # Ingestion metadata for Android sync/import workflows.
     ingestion_mode: Mapped[str] = mapped_column(String(32), nullable=False, default="single_upload")
@@ -141,6 +171,11 @@ class CategoryLearningRule(Base):
     category: Mapped[str] = mapped_column(String(64), nullable=False)
     learned_from_tx_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     usage_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    correction_scope: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    correction_match_basis: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    canonical_entity_name: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
+    normalized_text_signature: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    is_manual: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()

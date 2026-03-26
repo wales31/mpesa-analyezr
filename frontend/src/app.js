@@ -136,6 +136,13 @@ function apiPatch(path, body) {
   });
 }
 
+function apiPut(path, body) {
+  return apiFetch(path, {
+    method: "PUT",
+    body: JSON.stringify(body),
+  });
+}
+
 function setText(id, text) {
   const node = byId(id);
   if (!node) return;
@@ -223,6 +230,7 @@ window.mpesaApi.me = () => apiGet("/auth/me");
 
 window.mpesaApi.get = apiGet;
 window.mpesaApi.post = apiPost;
+window.mpesaApi.put = apiPut;
 window.mpesaApi.patch = apiPatch;
 window.mpesaApi.del = apiDelete;
 window.mpesaApi.check = checkApi;
