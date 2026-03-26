@@ -78,6 +78,7 @@ class TransactionItem {
     required this.currency,
     required this.category,
     required this.direction,
+    required this.transactionType,
     required this.recipient,
     required this.occurredAt,
   });
@@ -87,6 +88,7 @@ class TransactionItem {
   final String currency;
   final String category;
   final String direction;
+  final String? transactionType;
   final String? recipient;
   final DateTime? occurredAt;
 
@@ -96,6 +98,7 @@ class TransactionItem {
         currency: json['currency'] as String? ?? 'KES',
         category: json['category'] as String? ?? 'other',
         direction: json['direction'] as String? ?? 'expense',
+        transactionType: json['transaction_type'] as String?,
         recipient: json['recipient'] as String?,
         occurredAt: json['occurred_at'] == null
             ? null

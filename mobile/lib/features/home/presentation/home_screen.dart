@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/network/api_client.dart';
 import '../../../core/platform/sms_reader_service.dart';
+import '../../../services/mpesa_parser_service.dart';
 import '../../auth/application/auth_controller.dart';
 import '../../auth/domain/models.dart';
 
@@ -52,6 +53,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   late final TextEditingController _apiBaseController;
   late final TextEditingController _budgetController;
   final SmsReaderService _smsReaderService = SmsReaderService();
+  final MpesaParserService _mpesaParserService = MpesaParserService();
+  double? _latestMpesaBalance;
+  DateTime? _latestMpesaBalanceAt;
 
   @override
   void initState() {
@@ -59,6 +63,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     _apiBaseController =
         TextEditingController(text: ref.read(authControllerProvider).apiBase);
     _budgetController = TextEditingController();
+    _refreshLatestBalanceFromSms();
   }
 
   @override
@@ -186,6 +191,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
           ],
           const SizedBox(height: 12),
+          _buildBalanceCard(context),
+          const SizedBox(height: 12),
           _buildMonthlySummaryCard(context, summaryAsync, budgetAsync, authState),
           const SizedBox(height: 12),
           _buildTrendCard(context, transactionsAsync),
@@ -287,6 +294,47 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           '$error',
           style: const TextStyle(color: Colors.white),
         ),
+      ),
+    );
+  }
+
+  Widget _buildBalanceCard(BuildContext context) {
+    return _Card(
+      child: Row(
+        children: [
+          const CircleAvatar(
+            radius: 22,
+            backgroundColor: Color(0xFFE6F5EC),
+            child: Icon(Icons.account_balance_wallet_rounded, color: Color(0xFF0D8A43)),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Latest M-PESA Balance',
+                    style: Theme.of(context).textTheme.titleMedium),
+                const SizedBox(height: 4),
+                Text(
+                  _latestMpesaBalance == null
+                      ? 'Balance unavailable. Sync SMS to update.'
+                      : _formatAmount(_latestMpesaBalance!, 'KES'),
+                  style: Theme.of(context)
+                      .textTheme
+                      .headlineSmall
+                      ?.copyWith(fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  _latestMpesaBalanceAt == null
+                      ? 'No recent message with balance found'
+                      : 'From SMS on ${_latestMpesaBalanceAt!.toLocal().toIso8601String().replaceFirst('T', ' ').substring(0, 16)}',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -449,11 +497,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               'Unknown date',
                         ),
                         trailing: Text(
-                          _formatAmount(tx.amount, tx.currency),
+                          _formatSignedAmount(tx),
                           style: TextStyle(
-                            color: tx.direction == 'expense'
-                                ? Colors.red.shade700
-                                : const Color(0xFF0D8A43),
+                            color: _amountColor(tx),
                             fontWeight: FontWeight.w700,
                           ),
                         ),
@@ -503,17 +549,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       children: [
                         Text(tx.category,
                             style: const TextStyle(fontWeight: FontWeight.w600)),
-                        Text(tx.recipient ?? 'M-PESA transaction',
-                            style: Theme.of(context).textTheme.bodySmall),
+                        const SizedBox(height: 2),
+                        Text(
+                          '${_directionLabel(tx)} • ${tx.recipient ?? 'M-PESA transaction'}',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
                       ],
                     ),
                   ),
                   Text(
-                    _formatAmount(tx.amount, tx.currency),
+                    _formatSignedAmount(tx),
                     style: TextStyle(
-                      color: tx.direction == 'expense'
-                          ? Colors.red.shade700
-                          : const Color(0xFF0D8A43),
+                      color: _amountColor(tx),
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -701,7 +748,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               const SizedBox(height: 10),
               Text('Category: ${tx.category}'),
               Text('Amount: ${_formatAmount(tx.amount, tx.currency)}'),
-              Text('Direction: ${tx.direction}'),
+              Text('Direction: ${_directionLabel(tx)}'),
+              Text('Type: ${tx.transactionType ?? 'n/a'}'),
               Text(
                   'Date: ${tx.occurredAt?.toIso8601String().split('T').first ?? 'Unknown'}'),
             ],
@@ -772,10 +820,70 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     ref.invalidate(summaryProvider);
     ref.invalidate(transactionsProvider);
     ref.invalidate(budgetProvider);
+    await _refreshLatestBalanceFromSms();
   }
 
   String _formatAmount(double value, String currency) {
     return '$currency ${value.toStringAsFixed(value.truncateToDouble() == value ? 0 : 2)}';
+  }
+
+  String _formatSignedAmount(TransactionItem tx) {
+    final direction = _effectiveDirection(tx);
+    final amount = _formatAmount(tx.amount, tx.currency);
+    if (direction == 'income') return '+$amount';
+    if (direction == 'expense') return '-$amount';
+    return amount;
+  }
+
+  Color _amountColor(TransactionItem tx) {
+    final direction = _effectiveDirection(tx);
+    if (direction == 'income') return const Color(0xFF0D8A43);
+    if (direction == 'expense') return Colors.red.shade700;
+    return Colors.blueGrey.shade700;
+  }
+
+  String _directionLabel(TransactionItem tx) {
+    final direction = _effectiveDirection(tx);
+    if (direction == 'income') return 'Received';
+    if (direction == 'expense') return 'Sent/Spent';
+    return 'Transfer';
+  }
+
+  String _effectiveDirection(TransactionItem tx) {
+    final raw = tx.direction.trim().toLowerCase();
+    if (raw == 'income' || raw == 'expense' || raw == 'transfer') return raw;
+
+    final type = (tx.transactionType ?? '').trim().toLowerCase();
+    const incomeTypes = {'receive', 'received', 'deposit'};
+    const expenseTypes = {'sent', 'send', 'pay', 'paybill', 'buy_goods', 'airtime'};
+    const transferTypes = {'withdraw', 'withdrawal', 'transfer'};
+    if (incomeTypes.contains(type)) return 'income';
+    if (expenseTypes.contains(type)) return 'expense';
+    if (transferTypes.contains(type)) return 'transfer';
+    return 'expense';
+  }
+
+  Future<void> _refreshLatestBalanceFromSms() async {
+    final permission = await Permission.sms.status;
+    if (!permission.isGranted) return;
+
+    final smsItems = await _smsReaderService.readRecentMpesaSms(limit: 80);
+    if (smsItems.isEmpty) return;
+
+    final sorted = [...smsItems]
+      ..sort((a, b) => (b.timestamp ?? DateTime.fromMillisecondsSinceEpoch(0))
+          .compareTo(a.timestamp ?? DateTime.fromMillisecondsSinceEpoch(0)));
+
+    for (final sms in sorted) {
+      final parsed = _mpesaParserService.parse(sms.body);
+      if (parsed.balance == null) continue;
+      if (!mounted) return;
+      setState(() {
+        _latestMpesaBalance = parsed.balance;
+        _latestMpesaBalanceAt = sms.timestamp;
+      });
+      return;
+    }
   }
 
   ({List<String> labels, List<double> values}) _weeklyTrend(
@@ -792,7 +900,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     for (final tx in transactions) {
       final occurred = tx.occurredAt;
-      if (tx.direction != 'expense' || occurred == null) continue;
+      if (_effectiveDirection(tx) != 'expense' || occurred == null) continue;
       final key = '${occurred.year}-${occurred.month}-${occurred.day}';
       if (!totals.containsKey(key)) continue;
       totals[key] = (totals[key] ?? 0) + tx.amount;
