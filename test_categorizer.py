@@ -174,3 +174,25 @@ def test_normalization_helpers_cover_noise_and_specificity():
     assert extract_account_reference("Paid to Cheruka for account room 2.11a on 20/03") == "room 2.11a"
     assert extract_phone_number("Sent to JOHN 0712345678") is not None
     assert infer_entity_type("Jane Doe") == "person"
+
+
+def test_parsed_sub_type_fallback_assigns_non_uncategorized_category():
+    db = _session()
+
+    buy_goods = _classify(
+        db,
+        "AA11BB22CC Confirmed. Ksh 1,250.00 paid to business on 20/03/26 at 9:15 AM.",
+        parsed_sub_type="buy_goods",
+        parsed_direction="expense",
+    )
+    paybill = _classify(
+        db,
+        "AA11BB22CC Confirmed. Ksh 2,800.00 paybill on 20/03/26 at 9:15 AM.",
+        parsed_sub_type="paybill",
+        parsed_direction="expense",
+    )
+
+    assert buy_goods.category == "shopping"
+    assert buy_goods.matched_rule == "parsed_sub_type:buy_goods"
+    assert paybill.category == "bills"
+    assert paybill.matched_rule == "parsed_sub_type:paybill"

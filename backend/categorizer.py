@@ -35,6 +35,13 @@ KEYWORD_RULES: list[tuple[str, list[str], str, str, str, float]] = [
     ("utility", ["electricity", "water", "internet", "token"], "expense", "paybill", "bills", 0.58),
 ]
 
+PARSED_SUBTYPE_FALLBACKS: dict[str, tuple[str, str, str, float]] = {
+    "buy_goods": ("expense", "buy_goods", "shopping", 0.64),
+    "paybill": ("expense", "paybill", "bills", 0.66),
+    "airtime": ("expense", "airtime", "airtime", 0.67),
+    "withdrawal": ("expense", "withdrawal", "transport", 0.58),
+}
+
 SCOPE_RANK = {
     "merchant_plus_account": 7,
     "paybill_plus_account": 7,
@@ -44,6 +51,7 @@ SCOPE_RANK = {
     "contact_only": 5,
     "paybill_only": 4,
     "normalized_text_exact": 3,
+    "parsed_sub_type": 2,
     "broad": 1,
 }
 
@@ -206,6 +214,26 @@ def _curated_candidate(data: ClassificationInput) -> Optional[CandidateRule]:
     return None
 
 
+def _parsed_sub_type_candidate(data: ClassificationInput) -> Optional[CandidateRule]:
+    if not data.parsed_sub_type:
+        return None
+    fallback = PARSED_SUBTYPE_FALLBACKS.get(data.parsed_sub_type)
+    if not fallback:
+        return None
+    tx_type, sub_type, category, base = fallback
+    return CandidateRule(
+        category=category,
+        tx_type=tx_type,
+        sub_type=sub_type,
+        source="rule",
+        matched_rule=f"parsed_sub_type:{data.parsed_sub_type}",
+        priority_tier=4,
+        key_type="parsed_sub_type",
+        scope="parsed_sub_type",
+        base=base,
+    )
+
+
 def _detect_conflicts(candidates: list[CandidateRule], data: ClassificationInput) -> tuple[list[str], list[str]]:
     reasons: list[str] = []
     competing: list[str] = []
@@ -251,6 +279,9 @@ def classify_transaction(db: Session, *, user_id: str, data: ClassificationInput
     curated = _curated_candidate(data)
     if curated:
         candidates.append(curated)
+    parsed_sub_type_candidate = _parsed_sub_type_candidate(data)
+    if parsed_sub_type_candidate:
+        candidates.append(parsed_sub_type_candidate)
     keyword = _keyword_candidate(data)
     if keyword:
         candidates.append(keyword)
