@@ -196,6 +196,66 @@ def _apply_lightweight_migrations() -> None:
                 )
             )
             columns.add("source_received_at")
+        if "raw_message" not in columns:
+            conn.execute(text("ALTER TABLE transactions ADD COLUMN raw_message TEXT"))
+            columns.add("raw_message")
+        if "normalized_message" not in columns:
+            conn.execute(text("ALTER TABLE transactions ADD COLUMN normalized_message TEXT"))
+            columns.add("normalized_message")
+        if "transaction_sub_type" not in columns:
+            conn.execute(text("ALTER TABLE transactions ADD COLUMN transaction_sub_type VARCHAR(32)"))
+            columns.add("transaction_sub_type")
+        if "confidence_score" not in columns:
+            conn.execute(text("ALTER TABLE transactions ADD COLUMN confidence_score NUMERIC(4,3)"))
+            columns.add("confidence_score")
+        if "classification_source" not in columns:
+            conn.execute(text("ALTER TABLE transactions ADD COLUMN classification_source VARCHAR(32)"))
+            columns.add("classification_source")
+        if "matched_rule" not in columns:
+            conn.execute(text("ALTER TABLE transactions ADD COLUMN matched_rule VARCHAR(255)"))
+            columns.add("matched_rule")
+        if "category_suggestions" not in columns:
+            conn.execute(text("ALTER TABLE transactions ADD COLUMN category_suggestions VARCHAR(255)"))
+            columns.add("category_suggestions")
+        if "merchant_name" not in columns:
+            conn.execute(text("ALTER TABLE transactions ADD COLUMN merchant_name VARCHAR(128)"))
+            columns.add("merchant_name")
+        if "contact_name" not in columns:
+            conn.execute(text("ALTER TABLE transactions ADD COLUMN contact_name VARCHAR(128)"))
+            columns.add("contact_name")
+        if "paybill_number" not in columns:
+            conn.execute(text("ALTER TABLE transactions ADD COLUMN paybill_number VARCHAR(32)"))
+            columns.add("paybill_number")
+        if "till_number" not in columns:
+            conn.execute(text("ALTER TABLE transactions ADD COLUMN till_number VARCHAR(32)"))
+            columns.add("till_number")
+        if "account_reference" not in columns:
+            conn.execute(text("ALTER TABLE transactions ADD COLUMN account_reference VARCHAR(128)"))
+            columns.add("account_reference")
+        if "user_corrected_category" not in columns:
+            conn.execute(text("ALTER TABLE transactions ADD COLUMN user_corrected_category VARCHAR(64)"))
+            columns.add("user_corrected_category")
+        if "user_correction_key" not in columns:
+            conn.execute(text("ALTER TABLE transactions ADD COLUMN user_correction_key VARCHAR(255)"))
+            columns.add("user_correction_key")
+        for ddl_name, ddl in [
+            ("matched_priority_tier", "ALTER TABLE transactions ADD COLUMN matched_priority_tier INTEGER"),
+            ("matched_key_type", "ALTER TABLE transactions ADD COLUMN matched_key_type VARCHAR(64)"),
+            ("correction_scope", "ALTER TABLE transactions ADD COLUMN correction_scope VARCHAR(64)"),
+            ("correction_match_basis", "ALTER TABLE transactions ADD COLUMN correction_match_basis VARCHAR(64)"),
+            ("canonical_entity_name", "ALTER TABLE transactions ADD COLUMN canonical_entity_name VARCHAR(128)"),
+            ("normalized_text_signature", "ALTER TABLE transactions ADD COLUMN normalized_text_signature VARCHAR(255)"),
+            ("confidence_band", "ALTER TABLE transactions ADD COLUMN confidence_band VARCHAR(16)"),
+            ("confidence_breakdown", "ALTER TABLE transactions ADD COLUMN confidence_breakdown TEXT"),
+            ("confidence_reason_summary", "ALTER TABLE transactions ADD COLUMN confidence_reason_summary VARCHAR(255)"),
+            ("conflict_flag", "ALTER TABLE transactions ADD COLUMN conflict_flag BOOLEAN"),
+            ("conflict_reasons", "ALTER TABLE transactions ADD COLUMN conflict_reasons TEXT"),
+            ("competing_rules", "ALTER TABLE transactions ADD COLUMN competing_rules TEXT"),
+            ("needs_review", "ALTER TABLE transactions ADD COLUMN needs_review BOOLEAN"),
+        ]:
+            if ddl_name not in columns:
+                conn.execute(text(ddl))
+                columns.add(ddl_name)
 
         indexes = {idx["name"] for idx in inspector.get_indexes("transactions")}
         if "ix_transactions_user_id" not in indexes:
@@ -224,6 +284,29 @@ def _apply_lightweight_migrations() -> None:
                     "ON transactions (ingestion_batch_id)"
                 )
             )
+        if "ix_transactions_paybill_number" not in indexes:
+            conn.execute(text("CREATE INDEX ix_transactions_paybill_number ON transactions (paybill_number)"))
+        if "ix_transactions_till_number" not in indexes:
+            conn.execute(text("CREATE INDEX ix_transactions_till_number ON transactions (till_number)"))
+        if "ix_transactions_user_correction_key" not in indexes:
+            conn.execute(
+                text(
+                    "CREATE INDEX ix_transactions_user_correction_key "
+                    "ON transactions (user_id, user_correction_key)"
+                )
+            )
+
+        if inspector.has_table("category_learning_rules"):
+            learning_columns = {col["name"] for col in inspector.get_columns("category_learning_rules")}
+            for ddl_name, ddl in [
+                ("correction_scope", "ALTER TABLE category_learning_rules ADD COLUMN correction_scope VARCHAR(64)"),
+                ("correction_match_basis", "ALTER TABLE category_learning_rules ADD COLUMN correction_match_basis VARCHAR(64)"),
+                ("canonical_entity_name", "ALTER TABLE category_learning_rules ADD COLUMN canonical_entity_name VARCHAR(128)"),
+                ("normalized_text_signature", "ALTER TABLE category_learning_rules ADD COLUMN normalized_text_signature VARCHAR(255)"),
+                ("is_manual", "ALTER TABLE category_learning_rules ADD COLUMN is_manual BOOLEAN NOT NULL DEFAULT 0"),
+            ]:
+                if ddl_name not in learning_columns:
+                    conn.execute(text(ddl))
 
 
 def display_database_url() -> str:

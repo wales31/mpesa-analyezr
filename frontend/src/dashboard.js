@@ -417,7 +417,7 @@ function renderTransactions(payload) {
   if (!transactions.length) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="6" class="text-secondary">No transactions found in this range.</td>
+        <td colspan="7" class="text-secondary">No transactions found in this range.</td>
       </tr>
     `;
     updateKpis();
@@ -432,13 +432,61 @@ function renderTransactions(payload) {
     tr.innerHTML = `
       <td class="text-secondary">${tx?.id ?? "—"}</td>
       <td>${formatCurrency(typeof tx?.amount === "number" ? tx.amount : NaN, currency)}</td>
-      <td>${escapeHtml(tx?.category ?? "—")}</td>
-      <td class="text-secondary">${escapeHtml(tx?.transaction_type ?? "—")}</td>
+      <td>
+        <span class="badge text-bg-secondary">${escapeHtml(tx?.category ?? "—")}</span>
+        <div class="small text-secondary mt-1">${escapeHtml(tx?.classification_source ?? "—")} · ${Math.round((tx?.confidence_score ?? 0) * 100)}% (${escapeHtml(tx?.confidence_band ?? "low")})</div>
+        ${tx?.needs_review ? '<div class="small text-warning">Needs review</div>' : ""}
+      </td>
+      <td class="text-secondary">${escapeHtml(tx?.transaction_sub_type ?? tx?.transaction_type ?? "—")}</td>
       <td>${escapeHtml(tx?.recipient ?? "—")}</td>
       <td class="text-secondary">${formatDateTime(tx?.occurred_at)}</td>
+      <td>
+        <div class="d-flex flex-column gap-1">
+          <button class="btn btn-outline-secondary btn-sm" data-action="why" data-id="${tx?.id ?? ""}">Why?</button>
+          <button class="btn btn-outline-primary btn-sm" data-action="recat" data-id="${tx?.id ?? ""}">Recategorize</button>
+        </div>
+      </td>
     `;
     tbody.appendChild(tr);
   }
+
+  tbody.querySelectorAll("button[data-action='why']").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const id = Number(btn.getAttribute("data-id"));
+      const tx = transactions.find((item) => Number(item?.id) === id);
+      if (!tx) return;
+      const suggestions = Array.isArray(tx.category_suggestions) && tx.category_suggestions.length
+        ? `\\nSuggestions: ${tx.category_suggestions.join(", ")}`
+        : "";
+      const conflicts = Array.isArray(tx.conflict_reasons) && tx.conflict_reasons.length
+        ? `\\nConflicts: ${tx.conflict_reasons.join(", ")}`
+        : "";
+      alert(`Matched rule: ${tx.matched_rule || "n/a"}\\nTier: ${tx.matched_priority_tier ?? "n/a"} (${tx.matched_key_type || "n/a"})\\nSource: ${tx.classification_source || "n/a"}\\nConfidence: ${tx.confidence_band || "n/a"}${conflicts}${suggestions}`);
+    });
+  });
+  tbody.querySelectorAll("button[data-action='recat']").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const id = Number(btn.getAttribute("data-id"));
+      const category = prompt("New category (e.g. food, bills, rent):");
+      if (!category) return;
+      const apply = confirm("Apply to similar transactions too?");
+      let correctionScope = null;
+      if (apply) {
+        correctionScope = prompt(
+          "Correction scope: merchant_plus_account, paybill_plus_account, till_only, merchant_only, contact_only, paybill_only, normalized_text_exact",
+          "merchant_plus_account",
+        );
+      }
+      const broadApply = apply ? confirm("Allow broader merchant-level reuse too?") : false;
+      await window.mpesaApi.put(`/transactions/${id}/category`, {
+        category,
+        apply_to_similar: apply,
+        correction_scope: correctionScope || undefined,
+        broad_apply: broadApply,
+      });
+      await Promise.all([loadTransactions(), loadSummary(), loadInsights()]);
+    });
+  });
 
   updateKpis();
   renderSignalCards();
