@@ -144,7 +144,7 @@ CHAPTER THREE: METHODOLOGY ............................................... 19
 
 3.3 Data Collection Methods ........................................................... 23
 
-3.4 System Analysis and Design ...................................................... 24
+3.4 Design Diagrams .................................................................... 24
 
 3.5 Research Ethics ........................................................................ 30
 
@@ -208,11 +208,15 @@ Table C1 Project Schedule
 
 Figure 2.1 Conceptual Framework for the M-PESA Spending Analyzer
 
-Figure 3.1 High-Level System Architecture
+Figure 3.1 Context Diagram
 
-Figure 3.2 Data Flow for Message Analysis and Dashboard Update
+Figure 3.2 Level 1 Data Flow Diagram (DFD)
 
-Figure 3.3 Use-Case Summary Diagram (Narrative Form)
+Figure 3.3 Use Case Diagram
+
+Figure 3.4 Entity Relationship Diagram (ERD)
+
+Figure 3.5 User Interface Prototypes
 
 Figure 4.1 Authentication and Session Flow
 
@@ -641,209 +645,52 @@ Given project timelines and scope, secondary and synthetic operational data appr
 
 Data collection instruments are provided in Appendix B, including test scenario templates and a brief usability checklist.
 
-## 3.4 System Analysis and Design (SAD)
+## 3.4 Design Diagrams
 
-### 3.4.1 System Analysis
+### 3.4.1 Context Diagram
 
-#### Requirements Gathering
+The context diagram shows the system boundary and mission: collecting raw incident reports from the Citizen, processing and validating the reports with the AI Service, and disseminating critical information to both the Citizen and the Response Agency.
 
-Requirements were gathered through:
+Prompt to generate Figure 3.1 using ChatGPT image generation:
 
-1. Observation of current spending-recording behavior among target users.
+"Create a clean academic context diagram titled 'Figure 3.1: Context Diagram' for a Community Disaster Reporting System. Place a central rounded rectangle labeled 'Community Disaster Reporting System'. Add an external actor 'Citizen' on the left, 'Response Agency' on the right, and 'AI Service' at the top. Draw directional arrows: Citizen to System labeled 'Raw report', AI Service to System labeled 'Validate and classify', System to Response Agency labeled 'Critical alert', Response Agency to System labeled 'Feedback', and System to Citizen labeled 'Status update'. Use a white background, professional blue/green/purple color accents, and readable labels suitable for a university report."
 
-2. Review of project documentation and expected deliverables.
+### 3.4.2 Level 1 Data Flow Diagram (DFD)
 
-3. Scenario-based analysis of key user journeys (register, ingest, view insights, set budget).
+The Level 1 DFD expands the internal flow into three core processes: receiving the report, AI-based validation and prioritization, and notifying stakeholders while persisting records in the incident and alert data stores.
 
-4. Review of existing codebase architecture and data structures.
+Prompt to generate Figure 3.2 using ChatGPT image generation:
 
-#### Functional Requirements
+"Generate a Level 1 Data Flow Diagram titled 'Figure 3.2: Level 1 Data Flow Diagram (DFD)' for a Community Disaster Reporting System. Include external entities: Citizen and Response Agency. Include processes: P1 Receive Report, P2 AI Validation and Prioritization, P3 Notify Stakeholders. Include data stores: D1 Incident Report Store and D2 Alert Log. Show arrows for report submission, process flow P1 to P2 to P3, critical alert delivery to Response Agency, response feedback, and writes to both data stores. Keep the layout clear, use standard DFD style with labeled arrows, and make it print-ready for a Word document."
 
-Table 3.1 Functional Requirements of the Proposed System
+### 3.4.3 Use Case Diagram
 
-FR1: The system shall register a new user and issue an access token.
+The use case model identifies the two primary actors (Citizen and Response Agency) and the major interactions they perform with the Community Disaster Reporting System.
 
-FR2: The system shall authenticate existing users and return valid session credentials.
+Prompt to generate Figure 3.3 using ChatGPT image generation:
 
-FR3: The system shall parse a single M-PESA SMS into structured transaction fields.
+"Create a UML use case diagram titled 'Figure 3.3: Use Case Diagram' for a Community Disaster Reporting System. Draw a system boundary box labeled 'Community Disaster Reporting System'. Place actor 'Citizen' on the left and actor 'Response Agency' on the right. Add use cases inside the boundary: Submit Incident Report, Receive Validation Feedback, Track Incident Status, Receive Critical Alert, Send Response Update. Connect Citizen to the first three use cases and Response Agency to the last two use cases. Use a formal academic look with crisp lines and readable text."
 
-FR4: The system shall process bulk SMS lines and return stored/failed counts.
+### 3.4.4 Entity Relationship Diagram (ERD)
 
-FR5: The system shall categorize transactions using hybrid rules.
+The ERD defines the core entities and cardinalities needed for persistence: users submit reports, reports trigger responses, and responses are linked to agencies.
 
-FR6: The system shall store transactions and retrieve them by user and filters.
+Prompt to generate Figure 3.4 using ChatGPT image generation:
 
-FR7: The system shall compute summary totals and category aggregates.
+"Design an Entity Relationship Diagram titled 'Figure 3.4: Entity Relationship Diagram (ERD)' for a Community Disaster Reporting Application database. Include entities and attributes: Users(user_id PK, phone, role), Reports(report_id PK, user_id FK, location, severity, description), Responses(response_id PK, report_id FK, agency_id FK), Agencies(agency_id PK, name, contact). Show relationships and cardinalities: one User submits many Reports, one Report can have many Responses, each Response belongs to one Agency. Use crow's foot notation or clearly labeled 1-to-many connectors. Keep it neat and suitable for insertion in a university project report."
 
-FR8: The system shall generate spending insights and warnings.
+### 3.4.5 User Interface Prototypes
 
-FR9: The system shall allow users to set and retrieve monthly budget limits.
+The UI prototype sketches illustrate the expected interaction surfaces for both sides of the platform: mobile report submission for Citizens and a web dashboard workflow for Response Agencies.
 
-FR10: The system shall generate and manage user notifications.
+Prompt to generate Figure 3.5 using ChatGPT image generation:
 
-FR11: The system shall expose authenticated summary data to both the web client and the prototype mobile app.
-
-#### Non-Functional Requirements
-
-Table 3.2 Non-Functional Requirements of the Proposed System
-
-NFR1: Security - Passwords must be hashed and endpoints protected by bearer tokens.
-
-NFR2: Performance - Common API responses should be fast for normal local workloads.
-
-NFR3: Usability - Interfaces should be simple, consistent, and informative.
-
-NFR4: Reliability - Parsing failures must return clear errors without crashing the service.
-
-NFR5: Maintainability - Modules should be separated by responsibility for easier updates.
-
-NFR6: Portability - Database backend should support SQLite and MySQL/MariaDB.
-
-#### Feasibility Study
-
-Table 3.3 Feasibility Analysis Summary
-
-Technical Feasibility: High. Required technologies (FastAPI, SQLAlchemy, static web frontend, Expo React Native mobile client) are accessible and stable.
-
-Economic Feasibility: High. Tooling is open-source and suitable for low-cost deployment.
-
-Operational Feasibility: High. User workflow is simple and aligned with existing SMS transaction behavior.
-
-Time Feasibility: Moderate to High. MVP achievable within academic semester timeline using iterative scope control.
-
-#### System Modeling
-
-Figure 3.1 High-Level System Architecture
-
-Web frontend + mobile app -> Backend API (FastAPI) -> Database (SQLite/MySQL)
-
-Figure 3.2 Data Flow for Message Analysis
-
-1. User submits SMS message(s).
-
-2. API authenticates request.
-
-3. Parser extracts structured fields.
-
-4. Categorizer assigns category.
-
-5. Transaction is stored per user.
-
-6. Summary/insights/notifications are recalculated.
-
-7. Dashboard retrieves and renders updated analytics.
-
-Figure 3.3 Use-Case Summary Diagram (Narrative)
-
-Actor: Authenticated user.
-
-Use cases: register/login, analyze message, analyze bulk, view transactions, update category, view summary, set budget limit, view notifications, clear transactions.
-
-### 3.4.2 System Design
-
-#### Architectural Design
-
-The system uses a three-layer architecture:
-
-1. Presentation layer: static web pages, JavaScript interaction logic, and a prototype mobile app client.
-
-2. Application layer: REST API endpoints for auth, analysis, budgets, insights, and notifications.
-
-3. Data layer: relational models managed through SQLAlchemy ORM.
-
-This structure supports separation of concerns, easier debugging, and independent evolution of frontend and backend components.
-
-#### Component Design
-
-Major backend component groups include:
-
-1. API endpoint classes (`backend/api/endpoints`).
-
-2. Business logic modules (`parser.py`, `categorizer.py`, `insights.py`, `notifications.py`).
-
-3. Security utilities (`security.py`, `current_user` dependency).
-
-4. Data models and schemas (`models.py`, `schemas.py`).
-
-5. Database setup and migration compatibility (`database.py`).
-
-Frontend components include:
-
-1. Shared API helper and token handling (`app.js`, `init.js`).
-
-2. Auth workflow page (`auth.html`, `auth.js`).
-
-3. Message ingestion page (`spending.html`, `spending.js`).
-
-4. Dashboard analytics page (`index.html`, `dashboard.js`).
-
-5. Budget planning page (`budget.html`, `budget.js`).
-
-Mobile client components include:
-
-1. Shared API client and type definitions (`mobile/src/api`).
-
-2. Authentication context and secure session persistence (`mobile/src/auth`, `mobile/src/storage`).
-
-3. Auth and summary screens (`mobile/src/screens`).
-
-#### Database Design
-
-Core tables used in implementation:
-
-1. `users` and `auth_tokens` for secure identity/session handling.
-
-2. `transactions` for normalized financial events.
-
-3. `category_learning_rules` for adaptive categorization.
-
-4. `user_budget_limits` for threshold monitoring.
-
-5. `notifications` for user alerts.
-
-The schema includes primary keys, unique constraints, and indexes to improve consistency and query performance.
-
-#### User Interface Design
-
-UI design principles applied:
-
-1. Clear navigation across Dashboard, Spending, Budget, and Account pages.
-
-2. Immediate API status indication.
-
-3. Minimal and readable action controls.
-
-4. Error visibility with plain-language feedback.
-
-5. Responsive layout using Bootstrap utility classes for the web client and simplified native controls for the mobile client.
-
-#### Design Validation
-
-Design validation used checklist-driven reviews against requirements:
-
-1. Every functional requirement mapped to at least one endpoint or UI action.
-
-2. Security review for auth enforcement and password/token handling.
-
-3. Data integrity checks for duplicate reference handling and per-user ownership.
-
-4. UX checks for clarity of status messages and action flow continuity.
+"Create a side-by-side low-fidelity UI prototype image titled 'Figure 3.5: User Interface Prototypes' for a Community Disaster Reporting System. Left panel: mobile citizen reporting screen with fields Incident Title, Location, Description, Attach Image button, and Submit button. Right panel: web response-agency dashboard with filter bar (critical/pending), incident table, View Details button, Assign Team button, and status timeline section. Use grayscale wireframe style with minimal accent color, clean alignment, and labels that remain readable when pasted into Word."
 
 ## 3.5 Research Ethics
 
-Although the project is software-focused, ethical considerations were observed:
+The Community Disaster Reporting Application is built on ethical foundations that prioritize user privacy, safety, and data integrity. Because the platform handles sensitive incident and geospatial information, all submitted reports are treated with strict anonymity controls, and data is protected through encryption both in transit and at rest. The design also minimizes risks of misinformation and system bias by enforcing AI-assisted validation before dissemination to external responders. Informed consent is operationalized through clear terms of use that explain what real-time, non-identifiable data is shared, with whom, and for what emergency response purpose.
 
-1. Privacy: Real personal SMS records should not be committed to source control; synthetic data is preferred in tests.
-
-2. Confidentiality: User transactions are scoped by authenticated user ID and not exposed across accounts.
-
-3. Data minimization: Only required transaction fields are persisted for analysis.
-
-4. Transparency: Users are informed of system limitations, including parser coverage and categorization uncertainty.
-
-5. Security hygiene: Passwords are hashed; tokens are stored as hashes and validated with expiry checks.
-
-These measures align with responsible handling of personal financial information in educational and prototype systems.
 
 <<<PAGE_BREAK>>>
 
