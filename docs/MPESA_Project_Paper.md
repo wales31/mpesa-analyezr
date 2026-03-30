@@ -376,87 +376,172 @@ This module provides user-facing web pages for account access, message ingestion
 
 ## 2.1 Introduction
 
-This chapter reviews theoretical and practical work related to mobile money analytics, personal finance management systems, SMS parsing, categorization techniques, and web-based financial dashboards. The review is structured in alignment with the project objectives. It examines relevant studies and technology practices, identifies methodological strengths and weaknesses, and highlights the gap addressed by this project.
+This chapter presents a comprehensive review of academic and technical literature relevant to the development of the **Community Disaster Reporting Web Application**. The review establishes the theoretical foundation of the study, evaluates the current state of crowd-sourced crisis management technologies, and identifies implementation gaps that the proposed system is designed to address.
 
-The review is limited to sources directly relevant to (a) mobile money and household finance behavior, (b) software architecture for transaction processing, (c) classification strategies for spending categories, and (d) practical implementation frameworks for lightweight web systems.
+The discussion is organized into six key areas: theoretical grounding, related literature, review of similar systems, identified gaps and proposed improvements, conceptual framework, and an operational explanation of how the web and mobile applications collaborate during disaster reporting and response.
 
-## 2.2 Review of Objective One: Investigating Existing Limitations
+## 2.2 Theoretical Framework
 
-Existing evidence shows mobile money has significant social and economic effects, including improved resilience, financial inclusion, and transaction convenience. However, the everyday management of personal spending behavior remains weak when users lack tools that convert transaction records into understandable insights.
+The development and expected adoption of the Community Disaster Reporting Web Application is guided by the **Technology Acceptance Model (TAM)** proposed by Davis (1989). TAM is appropriate for this project because it explains user intention to adopt a system through two core constructs: **Perceived Usefulness (PU)** and **Perceived Ease of Use (PEOU)**.
 
-Jack and Suri describe M-PESA as a transformative payment infrastructure, but they also imply that utility depends on surrounding support systems such as record management and decision tools. Suri and Jack further show long-run welfare impacts, reinforcing the need for practical analytics interfaces that help users interpret transaction behavior over time.
+### 2.2.1 Perceived Usefulness (PU)
 
-Conventional budgeting applications often assume direct bank APIs, extensive manual input, or paid service tiers. In contexts where users rely mainly on mobile money and SMS records, such assumptions create friction. Users frequently postpone recording expenses, resulting in incomplete data and poor monthly planning. Academic and industry discussions on personal finance apps consistently point to usability barriers, data entry burden, and poor continuity as common causes of tool abandonment.
+For institutional responders (for example, Kenya Red Cross and Kenya Power), the platform must demonstrate operational value by enabling:
 
-Therefore, the first literature conclusion is that the core gap is not transaction availability but transformation of available transaction traces into low-friction, user-friendly insights.
+1. Faster incident reporting and triage.
+2. Better spatial awareness through map-based visualization.
+3. More coordinated dispatch and resource mobilization.
+4. Reduced duplication in incident queues.
 
-## 2.3 Review of Objective Two: Developing Parsing and Storage Infrastructure
+High perceived usefulness increases the likelihood that agencies integrate the platform into routine emergency workflows.
 
-Information extraction from semi-structured text is a common problem in applied computing. SMS messages are concise but variable in formatting, punctuation, and language style. Rule-based parsing approaches remain useful in constrained domains where message templates are relatively stable, explainability is required, and datasets for machine learning are limited.
+### 2.2.2 Perceived Ease of Use (PEOU)
 
-In software engineering terms, robust parsing requires explicit patterns, validation, and graceful failure handling. The system in this study applies regular-expression-driven extraction and date parsing utilities to capture amount, timestamp, and transaction attributes. Literature on software reliability emphasizes deterministic handling and defensive validation for user-facing systems, especially when financial data is involved.
+For citizens reporting incidents under stress, interface simplicity is critical. The system therefore emphasizes:
 
-On data persistence, established design principles recommend normalized models, integrity constraints, and explicit indexing for query performance. SQLAlchemy's ORM approach aligns with these principles while preserving portability between SQLite and MySQL/MariaDB. This supports educational prototyping and practical migration toward more scalable environments.
+1. A low-friction Next.js web interface.
+2. A guided conversational AI chatbot for structured report capture.
+3. Minimal form complexity and clear prompt sequencing.
+4. Mobile-friendly reporting to support field-based users.
 
-Authentication and access control are also central. OWASP guidance highlights password hashing, token management, and least-exposure credential practices as baseline security controls. The project aligns with this literature through PBKDF2 password hashing, token hashing in storage, expiry enforcement, and user-scoped queries across transaction operations.
+By lowering cognitive load, perceived ease of use improves report completion rates and data quality.
 
-## 2.4 Review of Objective Three: Categorization and Dashboard Analytics
+## 2.3 Review of Related Literature
 
-Spending categorization can be approached by pure rules, statistical learning, or hybrid models. For low-resource and explainability-first applications, hybrid methods are often suitable because they combine deterministic behavior with adaptive user correction. In this project, category assignment first checks learned user mapping keys and then falls back to keyword matching. This design reflects literature that favors human-in-the-loop adaptation for evolving data contexts.
+### 2.3.1 Citizen-Centric Crowdsourcing in Crisis Communication
 
-Visualization research emphasizes fast interpretation through concise key performance indicators and clear trend summaries. Personal finance dashboards commonly include total expenditure, top category, category distribution, and warning indicators to reduce cognitive load and support quick reflection. The implemented dashboard follows these practices by presenting total spent, top category, transaction count, category bars, and warnings/highlights.
+Crowdsourcing has become a central mechanism for near real-time situational awareness, especially in rapid-onset emergencies where formal communication channels lag behind events (Ogie & Aigbavboa, 2018). However, literature consistently identifies a major limitation: **data integrity**.
 
-Insight generation in early-stage systems is typically rule-based. Even simple heuristics (for example, high spending share in risky categories) can offer practical behavioral prompts. Literature on persuasive analytics supports the use of immediate, understandable feedback rather than opaque scoring models in first-generation financial behavior tools.
+Large volumes of unverified citizen reports can produce information overload and false positives, which in turn consume scarce response resources. This supports the need for automated pre-processing mechanisms that can structure, validate, and de-duplicate incoming reports before agency dispatch decisions are made.
 
-## 2.5 Review of Objective Four: Evaluation, Deployment, and Usability
+### 2.3.2 Geospatial Information Systems (GIS) and Real-Time Mapping
 
-Agile and iterative development methodologies are widely recommended for projects where requirements evolve through feedback. For student and small-team projects, short iteration cycles, continuous integration of UI and API changes, and frequent manual verification are practical and effective.
+GIS technologies are foundational for translating textual reports into operational intelligence. Integration with mapping services (for example, Google Maps API) allows responders to visualize incident density, hotspot evolution, and proximity relationships between events and critical infrastructure.
 
-From a deployment perspective, modern lightweight stacks favor API-first backend services and decoupled clients across web and mobile platforms. This approach improves maintainability, simplifies debugging, and allows each layer to scale independently. FastAPI documentation and community practice demonstrate efficient development of typed REST endpoints, while lightweight web and mobile clients support gradual product evolution without tightly coupling presentation logic to backend internals.
+Longley et al. (2011) and related GIS literature emphasize that geotagging, spatial clustering, and dynamic map layers improve prioritization accuracy by enabling teams to direct limited resources toward the most affected locations.
 
-Usability literature (including Nielsen's heuristics) highlights visibility of system status, consistency, error prevention, and user control as key factors. The developed interface includes API online indicators, clear action states, informative error messages, and explicit navigation paths, supporting these principles at MVP stage.
+### 2.3.3 Application of AI for Data Integrity and Structured Input
+
+Current crisis informatics research supports AI-assisted conversational interfaces as effective tools for improving data completeness and standardization. In this project, the chatbot does not only collect reports; it also enforces structured fields (incident type, location cues, severity indicators) and performs duplicate detection.
+
+This AI-supported pre-processing layer improves trustworthiness and actionability of crowdsourced data, reducing manual moderation burden and improving response cycle speed.
+
+## 2.4 Review of Similar Systems
+
+A critical examination of existing systems shows strong foundations but persistent limitations in multi-agency coordination and automated data quality management.
+
+### 2.4.1 Ushahidi Platform
+
+Ushahidi, originally developed in Kenya, remains a global reference for crowdsourced crisis mapping. It effectively aggregates and visualizes user-submitted reports across incident types. However, its common deployment model is largely aggregation-centric; verification and prioritization often depend on human moderation, which can slow throughput during high-volume incidents.
+
+### 2.4.2 Downdetector
+
+Downdetector demonstrates the effectiveness of user-generated outage tracking for digital and utility services. It provides rapid public visibility and trend aggregation for service interruptions. Its limitation for this study is scope: it is optimized for outage monitoring and not for multi-hazard emergency coordination involving floods, fires, accidents, and utility failures in one integrated workflow.
+
+### 2.4.3 Local Utility Reporting Systems
+
+Many local reporting systems are highly reliable within narrow domains (for example, electricity outage complaint handling). Despite their strengths, these systems are frequently siloed and do not support compound disaster scenarios that require synchronized actions from multiple agencies.
+
+## 2.5 Identified Gaps and Proposed Improvements
+
+The literature review and comparative system analysis reveal three major implementation gaps in current practice:
+
+1. **Lack of Unified Multi-Hazard Reporting:** Existing tools are often hazard-specific.
+2. **Absence of Integrated Intelligence Filtering:** Few systems provide built-in AI-driven de-duplication and structuring at point of submission.
+3. **Inefficient Multi-Agency Coordination:** Alerts are commonly fragmented across organizations.
+
+To address these gaps, the proposed Community Disaster Reporting Web Application introduces the following improvements:
+
+1. **Unified Multi-Hazard Platform:** A single reporting entry point for floods, fires, outages, road incidents, and related emergencies.
+2. **AI-Enhanced Data Integrity:** Conversational guidance and duplicate detection produce cleaner, actionable incident streams.
+3. **Real-Time Multi-Agency Alerting:** Categorized, simultaneous notifications are routed to relevant response partners.
+
+The solution therefore synthesizes established technologies in an integrated architecture tailored to local disaster response realities.
 
 ## 2.6 Conceptual Framework
 
-Figure 2.1 Conceptual Framework for the M-PESA Spending Analyzer
+The conceptual framework formalizes how raw citizen inputs are transformed into decision-grade response intelligence.
 
-Independent Variables:
+### 2.6.1 Conceptual Diagram
 
-1. Availability of raw M-PESA SMS transaction messages.
+```mermaid
+flowchart TD
+    A[Citizen Incident Observation] --> B[Web/Mobile Report Submission]
+    B --> C[AI Chatbot Guidance
+Structured Data Capture]
+    C --> D[Validation & Duplicate Detection Engine]
+    D --> E[Incident Database]
+    E --> F[GIS Mapping & Heatmap Visualization]
+    E --> G[Rule-Based Alert Engine]
+    G --> H[Kenya Red Cross Notifications]
+    G --> I[Kenya Power Notifications]
+    G --> J[County/Local Response Units]
+    F --> K[Agency Dashboard Decision Support]
+    H --> K
+    I --> K
+    J --> K
+    K --> L[Coordinated Response & Resource Allocation]
+    L --> M[Improved Timeliness, Accuracy, and Coverage]
+```
 
-2. Parsing and categorization logic quality.
+### 2.6.2 Variable Relationship Summary
 
-3. User-provided context notes and manual category corrections.
+**Independent Variables**
 
-4. Budget limit configuration and threshold policies.
+1. Availability of citizen-generated incident reports.
+2. Quality of AI-assisted input structuring and de-duplication.
+3. GIS integration and geolocation precision.
+4. Alert routing rules for participating agencies.
 
-Intervening Variables:
+**Intervening Variables**
 
-1. Message format variability.
+1. Network/connectivity stability.
+2. User digital literacy and reporting behavior.
+3. Device capabilities and GPS availability.
+4. Agency readiness and operational capacity.
 
-2. User data entry quality.
+**Dependent Variables**
 
-3. Infrastructure constraints (local vs MySQL deployment).
+1. Accuracy and uniqueness of incident records.
+2. Speed of alert dissemination.
+3. Quality of multi-agency coordination.
+4. Overall disaster response effectiveness.
 
-Dependent Variables:
+## 2.7 How the Web and Mobile Applications Work
 
-1. Accuracy and consistency of categorized spending records.
+The system is implemented as a coordinated digital ecosystem where web and mobile clients share a common backend and data pipeline.
 
-2. Timeliness of budget/spending alerts.
+### 2.7.1 Web Application Workflow
 
-3. User visibility into spending behavior.
+1. A citizen or agency user logs into the web portal.
+2. The user submits a report via a guided form or chatbot interaction.
+3. The backend validates fields, geotags data, and runs duplicate checks.
+4. Cleaned reports are stored and reflected instantly on the operations dashboard.
+5. The alert engine routes categorized notifications to relevant institutions.
 
-4. Improved short-term budgeting decisions.
+### 2.7.2 Mobile Application Workflow
 
-Narrative relation:
+1. The citizen captures incident details in the mobile app (text, location, optional media).
+2. The app synchronizes data through secure API endpoints.
+3. The backend processes the report using the same validation and AI logic as the web channel.
+4. Status updates and acknowledgment messages are returned to the mobile user.
+5. Agency teams can review incident maps and response queues from mobile-compatible dashboards.
 
-Raw SMS inputs are processed by parser and categorization modules, enhanced by user feedback. Structured outputs feed summaries, insights, and notification logic. These outputs influence user awareness and spending control behavior.
+### 2.7.3 Integrated Web–Mobile Operation Model
 
-## 2.7 Literature Gap Summary
+Both clients are channel variants of one core incident-management system. This architecture ensures:
 
-The literature confirms strong mobile money adoption but limited practical tooling that transforms SMS transaction histories into simple personal financial intelligence for everyday users. Existing systems often over-emphasize integration complexity or require high manual effort.
+- Data consistency across platforms.
+- Real-time synchronization of report status.
+- Uniform AI and validation standards regardless of submission channel.
+- Scalable expansion to additional partners without redesigning user channels.
 
-The gap addressed by this project is therefore a lightweight, explainable, user-scoped analyzer that works from accessible SMS inputs and provides immediate dashboard-level insights without expensive ecosystem dependencies. This gap directly informed the methodology, system architecture, and implementation choices described in the next chapter.
+## 2.8 Chapter Summary
+
+This chapter established TAM as the guiding theory for user adoption, reviewed evidence on crowdsourcing, GIS, and AI-assisted crisis data management, and evaluated representative platforms. The analysis identified clear gaps in multi-hazard integration, automated data integrity controls, and inter-agency coordination.
+
+The proposed system addresses these limitations through a unified reporting interface, AI-enhanced report processing, real-time GIS intelligence, and automated multi-agency alerting delivered through synchronized web and mobile applications. These findings directly inform the methodology and system design decisions presented in Chapter Three.
+
 
 <<<PAGE_BREAK>>>
 
