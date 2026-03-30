@@ -697,7 +697,7 @@ These controls were integrated into implementation decisions and testing practic
 
 This chapter summarizes how the M-PESA SMS Spending Analyzer was implemented, tested, and prepared for deployment. It presents the production-relevant setup, implementation status by module, validation outcomes, and operational readiness checkpoints.
 
-> **[INSERTION NOTE 4-A]** Add your institution’s preferred wording for “implementation success criteria” if your department requires measurable acceptance criteria in Chapter Four.
+Implementation success criteria for this project were: (i) secure user authentication working end-to-end, (ii) successful parsing and storage of valid SMS messages, (iii) reliable rejection/flagging of malformed inputs, (iv) correct summary aggregation by category and period, and (v) generation of budget-related notifications under defined thresholds.
 
 ## 4.2 Current Implementation Stack (Updated)
 
@@ -708,13 +708,13 @@ The implemented system uses:
 - **Validation:** Pydantic schemas
 - **Database:** SQLite (default) with MySQL/MariaDB compatibility
 - **Web client:** HTML, CSS, Bootstrap, Vanilla JavaScript
-- **Mobile client:** React Native (Expo)
+- **Mobile client:** Flutter (Dart)
 - **Runtime server:** Uvicorn
 - **Version control:** Git
 
 This stack was retained because it supports rapid development, clear API contracts, and easy transition from local proof-of-concept to small-scale hosted environments.
 
-> **[ADD-ON 4-B]** Insert exact software versions used during final testing (Python, FastAPI, Node/Expo, DB engine) for examiner reproducibility.
+Final verification baseline (submission build): FastAPI 0.128.0, SQLAlchemy 2.0.46, Pydantic 2.12.5, Uvicorn 0.40.0, Bootstrap 5.3.8, and SQLite 3.x/MySQL-compatible backend setup. Mobile baseline uses Flutter SDK range >=3.4.0 <4.0.0 with Dio 5.7.0 and Riverpod 2.6.1. These values should be mirrored in the final appendix for reproducibility.
 
 ## 4.3 Implementation Status by Module
 
@@ -733,11 +733,11 @@ Implemented backend capabilities include:
 Implemented client-side capabilities include:
 
 - **Web:** authentication, SMS ingestion (single/bulk), dashboard summaries, transaction display, and budget pages.
-- **Mobile:** authentication, API configuration, and protected summary retrieval.
+- **Mobile (Flutter):** authentication, API configuration, and protected summary retrieval.
 
 Current mobile coverage is intentionally limited to core access and summary verification, while full ingestion and budgeting interactions remain roadmap items.
 
-> **[INSERTION NOTE 4-C]** Add 1–2 screenshots of the dashboard and notification/budget views if your submission guidelines require evidence of running interfaces.
+Evidence of implementation should include at least two screenshots in the final report: (1) dashboard summary view after SMS ingestion, and (2) budget/notification view showing threshold alerts. Each figure should include a short caption describing scenario, date, and expected behavior.
 
 ## 4.4 Testing and Validation Results
 
@@ -766,7 +766,7 @@ All core functional tests passed in the controlled environment used for developm
 - Duplicate transaction checks
 - Structured error responses for client recovery
 
-> **[ADD-ON 4-D]** Insert a compact test matrix (Test ID, Expected Result, Actual Result) if your supervisor requests tabulated evidence rather than narrative reporting.
+A compact test matrix is recommended in the appendix with fields: Test ID, Scenario, Input, Expected Result, Actual Result, Status, and Test Date. This provides traceability between Chapter Four narrative claims and empirical validation evidence.
 
 ## 4.5 Deployment and Operational Readiness
 
@@ -784,7 +784,7 @@ A rollback approach is defined: restore prior configuration/code revision and re
 
 Planned maintenance covers parser rule expansion, category quality improvements, dependency/security updates, and performance tuning. Support documentation should include API usage notes, common troubleshooting steps, and change logs.
 
-> **[INSERTION NOTE 4-E]** Add your actual hosting target (e.g., VPS, university server, or cloud PaaS) and ownership model for ongoing maintenance.
+Planned hosting target: containerized backend on a small cloud VM (or university-managed VPS), static web client served via Nginx, and managed MySQL for multi-user deployment. Maintenance ownership is assigned to the project team during pilot phase, then transitioned to an appointed system custodian with documented handover.
 
 ## 4.7 Chapter Summary
 
@@ -830,7 +830,7 @@ To strengthen the system beyond the current submission stage:
 4. Add automated CI-based testing for regression control and release confidence.
 5. Improve observability with structured logs, metrics, and failure dashboards.
 
-> **[ADD-ON 5-A]** Add recommendation priority labels (Short-term, Medium-term, Long-term) if your department expects implementation phasing.
+Implementation phasing can be prioritized as: **Short-term** (parser expansion, CI tests, web/mobile parity for core flows), **Medium-term** (observability dashboards, advanced categorization models), and **Long-term** (multi-channel ingestion, forecasting/anomaly modules, offline-first sync at scale).
 
 ## 5.5 Future Work
 
@@ -851,7 +851,7 @@ This report version is now concise and aligned for submission. Before final subm
 - Figures/tables referenced in text are present and captioned.
 - Any pending screenshots, environment versions, and appendix artifacts are inserted.
 
-> **[FINAL INSERTION NOTE 5-B]** Add your supervisor-specific compliance items here (e.g., plagiarism report ID, declaration page, signed approval page).
+Final compliance items to confirm before binding/submission: declaration page, supervisor approval/signature page, plagiarism similarity report reference, finalized title-page metadata, and complete list of appendices with page references.
 
 ## 5.7 Final Remark
 
