@@ -551,299 +551,141 @@ The review identified clear gaps in low-friction SMS analytics, adaptive categor
 
 ## 3.1 Introduction
 
-This chapter explains the methodological approach used to design, build, and evaluate the M-PESA SMS Spending Analyzer. It describes research design choices, development methodology, data collection approaches, system analysis and design techniques, and ethical considerations. The purpose is to make the project process transparent and reproducible.
+This chapter explains **how this project was actually executed** from requirements gathering to implementation and validation. Rather than presenting methodology as theory only, the chapter links each method to concrete outputs in the M-PESA SMS Spending Analyzer: API modules, parsing/categorization logic, dashboard views, and budget/notification features.
 
-## 3.2 Research Methodology and Research Design
+The chapter covers the research approach, SDLC process, requirement sources, analysis and design decisions, and ethical controls used when handling financial SMS data.
 
-The project used a mixed practical methodology combining qualitative requirement exploration and quantitative system validation.
+## 3.2 Research Methodology and System Development Life Cycle (SDLC)
 
-Qualitative elements included:
+### 3.2.1 Research Design
 
-1. Observation of common user spending-tracking habits.
+The project used a **Design Science Research (DSR)** orientation because the goal was to build an artifact that solves a practical problem: turning raw M-PESA confirmation SMS messages into usable spending intelligence.
 
-2. Problem decomposition based on user pain points (manual tracking burden, delayed insight access, category ambiguity).
+In this study, DSR was applied in three practical steps:
 
-3. Design decisions guided by usability and simplicity principles.
+1. **Problem identification**: users struggle with manual tracking, category inconsistency, and late visibility of overspending.
+2. **Artifact design and construction**: we implemented a working analyzer with authentication, ingestion, parsing, categorization, storage, summaries, insights, budgeting, and notifications.
+3. **Evaluation and refinement**: outputs were checked using scenario-driven tests (single message, bulk message, duplicate references, budget threshold crossing, and category correction workflows).
 
-Quantitative elements included:
+This design was selected because it matches software capstone work where usefulness is demonstrated through a functioning, testable system.
 
-1. Functional pass/fail testing across API endpoints.
+### 3.2.2 Software Development Methodology
 
-2. Validation of parser outputs against expected structured fields.
+Development followed an **iterative Agile workflow** (Scrum-like short cycles). Each cycle produced a usable increment and then incorporated fixes based on observed behavior.
 
-3. Computation checks for summary totals, insight triggers, and budget threshold logic.
+How the iterations were executed:
 
-This mixed approach was selected because the project required both human-centered design understanding and measurable verification of software behavior.
+1. **Backend foundation**: project bootstrap, router wiring, health endpoint, database setup.
+2. **Security and identity**: registration/login, token issuance, password hashing, current-user dependency.
+3. **Transaction ingestion pipeline**: SMS parsing, normalization, categorization, duplicate checks, transaction persistence.
+4. **Analytics features**: summary endpoint, insights engine, and transaction browsing.
+5. **Budget control and alerts**: budget-limit APIs plus notification generation and read-state management.
+6. **Client integration**: web pages for auth/spending/dashboard/budget and mobile authentication + summary consumption.
 
-## 3.2.1 Development Methodology (Software Project)
+Why this worked for our project:
 
-The implementation followed an iterative Agile-oriented workflow with short cycles:
+- It reduced risk by isolating complex tasks (especially parsing and categorization).
+- It allowed quick correction of parser/categorizer edge cases.
+- It kept implementation aligned with user flows instead of building unused features first.
 
-Iteration 1: Core API foundation
+## 3.3 Requirements Gathering and Data Collection Methods
 
-1. Setup FastAPI application structure.
+Requirements were gathered using lightweight but practical techniques appropriate for a development project:
 
-2. Configure database connection and model initialization.
+1. **Document review**: framework docs, API references, and prior project notes informed implementation constraints and best practices.
+2. **Workflow observation**: we examined how users currently review M-PESA messages and where manual tracking fails.
+3. **Scenario-based test data**: representative SMS samples were prepared for deposits, withdrawals, paybill, send money, and ambiguous formats.
+4. **Implementation feedback loop**: as endpoints and UI screens were exercised, requirements were refined (for example, adding better feedback errors, deduplication behavior, and budget alert checks).
 
-3. Implement health endpoint and base routing.
+This approach ensured requirements stayed tied to real execution outcomes rather than remaining purely conceptual.
 
-Iteration 2: Authentication and user scoping
-
-1. Add registration, login, and current-user endpoints.
-
-2. Implement password hashing and token lifecycle.
-
-3. Enforce user-scoped data access rules.
-
-Iteration 3: Message analysis pipeline
-
-1. Implement single-message parsing and storage.
-
-2. Add bulk ingestion with partial failure handling.
-
-3. Integrate categorization and deduplication by reference.
-
-Iteration 4: Analytics and budget support
-
-1. Implement summary and insights endpoints.
-
-2. Add budget limit update/retrieval endpoints.
-
-3. Generate and manage in-app notifications.
-
-Iteration 5: Frontend integration and stabilization
-
-1. Build auth, spending, dashboard, and budget pages.
-
-2. Integrate API helpers and session handling.
-
-3. Conduct scenario-based testing and bug fixes.
-
-Iteration 6: Mobile app foundation
-
-1. Setup Expo React Native application structure.
-
-2. Add configurable API connection, account authentication, and persisted sessions.
-
-3. Implement an authenticated summary screen to support future spending-tracker expansion.
-
-This development style enabled incremental delivery, early verification, and practical alignment with user-facing needs.
-
-## 3.3 Data Collection Methods Used
-
-Given project timelines and scope, secondary and synthetic operational data approaches were prioritized:
-
-1. Secondary technical data from framework/documentation sources for architecture and implementation decisions.
-
-2. Sample and simulated M-PESA-style SMS texts used to validate parser logic and category mapping behavior.
-
-3. Observational interaction data from local system usage scenarios (for example, repeated ingestion, category correction, budget threshold crossing).
-
-Data collection instruments are provided in Appendix B, including test scenario templates and a brief usability checklist.
-
-## 3.4 System Analysis and Design (SAD)
+## 3.4 System Analysis and Design
 
 ### 3.4.1 System Analysis
 
-#### Requirements Gathering
+#### Core Functional Requirements (Implemented)
 
-Requirements were gathered through:
+The implemented system supports the following functions:
 
-1. Observation of current spending-recording behavior among target users.
-
-2. Review of project documentation and expected deliverables.
-
-3. Scenario-based analysis of key user journeys (register, ingest, view insights, set budget).
-
-4. Review of existing codebase architecture and data structures.
-
-#### Functional Requirements
-
-Table 3.1 Functional Requirements of the Proposed System
-
-FR1: The system shall register a new user and issue an access token.
-
-FR2: The system shall authenticate existing users and return valid session credentials.
-
-FR3: The system shall parse a single M-PESA SMS into structured transaction fields.
-
-FR4: The system shall process bulk SMS lines and return stored/failed counts.
-
-FR5: The system shall categorize transactions using hybrid rules.
-
-FR6: The system shall store transactions and retrieve them by user and filters.
-
-FR7: The system shall compute summary totals and category aggregates.
-
-FR8: The system shall generate spending insights and warnings.
-
-FR9: The system shall allow users to set and retrieve monthly budget limits.
-
-FR10: The system shall generate and manage user notifications.
-
-FR11: The system shall expose authenticated summary data to both the web client and the prototype mobile app.
+1. User registration, login, and authenticated profile retrieval.
+2. Single SMS analysis and bulk SMS ingestion.
+3. Transaction categorization and later category correction.
+4. Transaction listing and clearing (per user scope).
+5. Summary and insights generation from stored transactions.
+6. Budget limit configuration and retrieval.
+7. Notification generation, listing, and read management.
+8. Shared backend consumption by both web and mobile clients.
 
 #### Non-Functional Requirements
 
-Table 3.2 Non-Functional Requirements of the Proposed System
+1. **Security**: hashed passwords, token-based access, user-isolated records.
+2. **Reliability**: robust handling of malformed SMS and partial bulk-ingestion failures.
+3. **Performance**: responsive endpoints for regular personal-scale workloads.
+4. **Usability**: simple interfaces and clear API/UI feedback messages.
+5. **Maintainability**: modular code separation (API endpoints, parsing, categorization, insights, notifications, models).
+6. **Portability**: support for SQLite and MySQL/MariaDB configurations.
 
-NFR1: Security - Passwords must be hashed and endpoints protected by bearer tokens.
+#### Feasibility Summary
 
-NFR2: Performance - Common API responses should be fast for normal local workloads.
-
-NFR3: Usability - Interfaces should be simple, consistent, and informative.
-
-NFR4: Reliability - Parsing failures must return clear errors without crashing the service.
-
-NFR5: Maintainability - Modules should be separated by responsibility for easier updates.
-
-NFR6: Portability - Database backend should support SQLite and MySQL/MariaDB.
-
-#### Feasibility Study
-
-Table 3.3 Feasibility Analysis Summary
-
-Technical Feasibility: High. Required technologies (FastAPI, SQLAlchemy, static web frontend, Expo React Native mobile client) are accessible and stable.
-
-Economic Feasibility: High. Tooling is open-source and suitable for low-cost deployment.
-
-Operational Feasibility: High. User workflow is simple and aligned with existing SMS transaction behavior.
-
-Time Feasibility: Moderate to High. MVP achievable within academic semester timeline using iterative scope control.
-
-#### System Modeling
-
-Figure 3.1 High-Level System Architecture
-
-Web frontend + mobile app -> Backend API (FastAPI) -> Database (SQLite/MySQL)
-
-Figure 3.2 Data Flow for Message Analysis
-
-1. User submits SMS message(s).
-
-2. API authenticates request.
-
-3. Parser extracts structured fields.
-
-4. Categorizer assigns category.
-
-5. Transaction is stored per user.
-
-6. Summary/insights/notifications are recalculated.
-
-7. Dashboard retrieves and renders updated analytics.
-
-Figure 3.3 Use-Case Summary Diagram (Narrative)
-
-Actor: Authenticated user.
-
-Use cases: register/login, analyze message, analyze bulk, view transactions, update category, view summary, set budget limit, view notifications, clear transactions.
+- **Technical**: feasible with current stack and available tooling.
+- **Economic**: feasible due to open-source technologies.
+- **Operational**: feasible because it uses existing SMS artifacts users already receive.
+- **Schedule**: feasible for MVP delivery under iterative scope control.
 
 ### 3.4.2 System Design
 
 #### Architectural Design
 
-The system uses a three-layer architecture:
+A three-layer architecture was used:
 
-1. Presentation layer: static web pages, JavaScript interaction logic, and a prototype mobile app client.
+1. **Presentation layer**: web client (HTML/CSS/JavaScript) and mobile client (React Native/Expo).
+2. **Application layer**: FastAPI services for auth, ingestion, analysis, summaries, insights, budgets, and notifications.
+3. **Data layer**: SQLAlchemy ORM models persisted in SQLite/MySQL.
 
-2. Application layer: REST API endpoints for auth, analysis, budgets, insights, and notifications.
+This structure kept business logic centralized in the API while allowing multiple clients to reuse the same services.
 
-3. Data layer: relational models managed through SQLAlchemy ORM.
+#### Processing Flow (How a Message Becomes an Insight)
 
-This structure supports separation of concerns, easier debugging, and independent evolution of frontend and backend components.
+1. User submits SMS text from web/mobile.
+2. Request is authenticated.
+3. Parser extracts structured fields.
+4. Categorizer assigns a category (with learned-rule support where available).
+5. Transaction is saved for that authenticated user.
+6. Summary/insight and budget-alert checks run on stored data.
+7. Updated results are returned to clients.
 
-#### Component Design
+#### Major Components
 
-Major backend component groups include:
+- **Security/auth**: registration, login, token lifecycle, current-user dependency.
+- **Ingestion/analysis**: single and bulk ingestion endpoints.
+- **Parser and normalizer**: extraction and cleanup of SMS transaction fields.
+- **Categorizer**: rules + learned mappings.
+- **Insights and notifications**: spending signals, threshold alerts, read management.
+- **Client modules**: auth, spending, dashboard, and budget views.
 
-1. API endpoint classes (`backend/api/endpoints`).
+#### Database Design Overview
 
-2. Business logic modules (`parser.py`, `categorizer.py`, `insights.py`, `notifications.py`).
+Main entities include users, authentication tokens, transactions, category-learning rules, budget limits, and notifications. Constraints and indexes are applied to preserve data integrity and improve retrieval efficiency.
 
-3. Security utilities (`security.py`, `current_user` dependency).
+#### Technologies Used in This Project
 
-4. Data models and schemas (`models.py`, `schemas.py`).
+- **Backend**: Python, FastAPI, SQLAlchemy, Pydantic, Uvicorn.
+- **Storage**: SQLite by default; MySQL/MariaDB optional.
+- **Web frontend**: HTML5, CSS3, Bootstrap, Vanilla JavaScript.
+- **Mobile app foundation**: React Native/Expo.
+- **Version control**: Git-based incremental development.
 
-5. Database setup and migration compatibility (`database.py`).
+## 3.5 Research Ethics and Data Protection Considerations
 
-Frontend components include:
+Although this is an academic software project, financial SMS data required explicit safeguards:
 
-1. Shared API helper and token handling (`app.js`, `init.js`).
+1. Prefer synthetic/anonymized SMS samples during testing.
+2. Enforce account-level data isolation so one user cannot read another user’s transactions.
+3. Store only fields required for analysis and reporting.
+4. Protect credentials using password hashing and token verification.
+5. Communicate parser and categorization limitations clearly to avoid misleading financial interpretation.
 
-2. Auth workflow page (`auth.html`, `auth.js`).
-
-3. Message ingestion page (`spending.html`, `spending.js`).
-
-4. Dashboard analytics page (`index.html`, `dashboard.js`).
-
-5. Budget planning page (`budget.html`, `budget.js`).
-
-Mobile client components include:
-
-1. Shared API client and type definitions (`mobile/src/api`).
-
-2. Authentication context and secure session persistence (`mobile/src/auth`, `mobile/src/storage`).
-
-3. Auth and summary screens (`mobile/src/screens`).
-
-#### Database Design
-
-Core tables used in implementation:
-
-1. `users` and `auth_tokens` for secure identity/session handling.
-
-2. `transactions` for normalized financial events.
-
-3. `category_learning_rules` for adaptive categorization.
-
-4. `user_budget_limits` for threshold monitoring.
-
-5. `notifications` for user alerts.
-
-The schema includes primary keys, unique constraints, and indexes to improve consistency and query performance.
-
-#### User Interface Design
-
-UI design principles applied:
-
-1. Clear navigation across Dashboard, Spending, Budget, and Account pages.
-
-2. Immediate API status indication.
-
-3. Minimal and readable action controls.
-
-4. Error visibility with plain-language feedback.
-
-5. Responsive layout using Bootstrap utility classes for the web client and simplified native controls for the mobile client.
-
-#### Design Validation
-
-Design validation used checklist-driven reviews against requirements:
-
-1. Every functional requirement mapped to at least one endpoint or UI action.
-
-2. Security review for auth enforcement and password/token handling.
-
-3. Data integrity checks for duplicate reference handling and per-user ownership.
-
-4. UX checks for clarity of status messages and action flow continuity.
-
-## 3.5 Research Ethics
-
-Although the project is software-focused, ethical considerations were observed:
-
-1. Privacy: Real personal SMS records should not be committed to source control; synthetic data is preferred in tests.
-
-2. Confidentiality: User transactions are scoped by authenticated user ID and not exposed across accounts.
-
-3. Data minimization: Only required transaction fields are persisted for analysis.
-
-4. Transparency: Users are informed of system limitations, including parser coverage and categorization uncertainty.
-
-5. Security hygiene: Passwords are hashed; tokens are stored as hashes and validated with expiry checks.
-
-These measures align with responsible handling of personal financial information in educational and prototype systems.
+These controls were integrated into implementation decisions and testing practice.
 
 <<<PAGE_BREAK>>>
 
