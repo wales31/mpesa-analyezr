@@ -376,87 +376,172 @@ This module provides user-facing web pages for account access, message ingestion
 
 ## 2.1 Introduction
 
-This chapter reviews theoretical and practical work related to mobile money analytics, personal finance management systems, SMS parsing, categorization techniques, and web-based financial dashboards. The review is structured in alignment with the project objectives. It examines relevant studies and technology practices, identifies methodological strengths and weaknesses, and highlights the gap addressed by this project.
+This chapter reviews academic and technical literature relevant to the development of the **M-PESA SMS Spending Analyzer**. The review establishes the conceptual and technical basis for the project, evaluates prior work in mobile money analytics and personal finance tooling, and identifies practical implementation gaps that this system addresses.
 
-The review is limited to sources directly relevant to (a) mobile money and household finance behavior, (b) software architecture for transaction processing, (c) classification strategies for spending categories, and (d) practical implementation frameworks for lightweight web systems.
+The analysis is organized around the project's objectives: understanding existing user challenges, evaluating parsing and storage approaches, assessing categorization and dashboard methods, and examining web/mobile delivery patterns for low-friction personal finance systems.
 
-## 2.2 Review of Objective One: Investigating Existing Limitations
+## 2.2 Theoretical Framework
 
-Existing evidence shows mobile money has significant social and economic effects, including improved resilience, financial inclusion, and transaction convenience. However, the everyday management of personal spending behavior remains weak when users lack tools that convert transaction records into understandable insights.
+The project is grounded in the **Technology Acceptance Model (TAM)** (Davis, 1989), which explains system adoption through two constructs: **Perceived Usefulness (PU)** and **Perceived Ease of Use (PEOU)**.
 
-Jack and Suri describe M-PESA as a transformative payment infrastructure, but they also imply that utility depends on surrounding support systems such as record management and decision tools. Suri and Jack further show long-run welfare impacts, reinforcing the need for practical analytics interfaces that help users interpret transaction behavior over time.
+### 2.2.1 Perceived Usefulness (PU)
 
-Conventional budgeting applications often assume direct bank APIs, extensive manual input, or paid service tiers. In contexts where users rely mainly on mobile money and SMS records, such assumptions create friction. Users frequently postpone recording expenses, resulting in incomplete data and poor monthly planning. Academic and industry discussions on personal finance apps consistently point to usability barriers, data entry burden, and poor continuity as common causes of tool abandonment.
+For M-PESA users, perceived usefulness is reflected in whether the system can:
 
-Therefore, the first literature conclusion is that the core gap is not transaction availability but transformation of available transaction traces into low-friction, user-friendly insights.
+1. Convert raw SMS records into understandable spending summaries.
+2. Reveal category-level spending patterns quickly.
+3. Provide timely budget threshold warnings.
+4. Support better day-to-day spending decisions.
 
-## 2.3 Review of Objective Two: Developing Parsing and Storage Infrastructure
+If users see immediate value in these outputs, they are more likely to adopt the analyzer consistently.
 
-Information extraction from semi-structured text is a common problem in applied computing. SMS messages are concise but variable in formatting, punctuation, and language style. Rule-based parsing approaches remain useful in constrained domains where message templates are relatively stable, explainability is required, and datasets for machine learning are limited.
+### 2.2.2 Perceived Ease of Use (PEOU)
 
-In software engineering terms, robust parsing requires explicit patterns, validation, and graceful failure handling. The system in this study applies regular-expression-driven extraction and date parsing utilities to capture amount, timestamp, and transaction attributes. Literature on software reliability emphasizes deterministic handling and defensive validation for user-facing systems, especially when financial data is involved.
+Ease of use is essential because many users abandon finance apps that require heavy manual entry. The system therefore emphasizes:
 
-On data persistence, established design principles recommend normalized models, integrity constraints, and explicit indexing for query performance. SQLAlchemy's ORM approach aligns with these principles while preserving portability between SQLite and MySQL/MariaDB. This supports educational prototyping and practical migration toward more scalable environments.
+1. Simple ingestion of pasted or bulk SMS messages.
+2. Automatic parsing and categorization with minimal user effort.
+3. Clear dashboard presentation of totals, categories, and trends.
+4. Straightforward correction flow when category adjustments are needed.
 
-Authentication and access control are also central. OWASP guidance highlights password hashing, token management, and least-exposure credential practices as baseline security controls. The project aligns with this literature through PBKDF2 password hashing, token hashing in storage, expiry enforcement, and user-scoped queries across transaction operations.
+These design choices reduce effort and increase continued use.
 
-## 2.4 Review of Objective Three: Categorization and Dashboard Analytics
+## 2.3 Review of Related Literature
 
-Spending categorization can be approached by pure rules, statistical learning, or hybrid models. For low-resource and explainability-first applications, hybrid methods are often suitable because they combine deterministic behavior with adaptive user correction. In this project, category assignment first checks learned user mapping keys and then falls back to keyword matching. This design reflects literature that favors human-in-the-loop adaptation for evolving data contexts.
+### 2.3.1 Mobile Money and Personal Finance Behavior
 
-Visualization research emphasizes fast interpretation through concise key performance indicators and clear trend summaries. Personal finance dashboards commonly include total expenditure, top category, category distribution, and warning indicators to reduce cognitive load and support quick reflection. The implemented dashboard follows these practices by presenting total spent, top category, transaction count, category bars, and warnings/highlights.
+Research on M-PESA shows strong impact on financial inclusion and household resilience (Suri & Jack; Jack & Suri). However, high transaction availability does not automatically translate to better financial decisions. Users often lack tools that turn transaction traces into interpretable budgeting intelligence.
 
-Insight generation in early-stage systems is typically rule-based. Even simple heuristics (for example, high spending share in risky categories) can offer practical behavioral prompts. Literature on persuasive analytics supports the use of immediate, understandable feedback rather than opaque scoring models in first-generation financial behavior tools.
+Literature on personal finance behavior further shows that low-friction feedback loops improve awareness and planning, while delayed or manual recordkeeping reduces adherence.
 
-## 2.5 Review of Objective Four: Evaluation, Deployment, and Usability
+### 2.3.2 SMS Parsing and Structured Data Extraction
 
-Agile and iterative development methodologies are widely recommended for projects where requirements evolve through feedback. For student and small-team projects, short iteration cycles, continuous integration of UI and API changes, and frequent manual verification are practical and effective.
+M-PESA messages are semi-structured and therefore suitable for rule-based extraction methods in constrained domains. Prior software engineering literature supports deterministic parsers when explainability, reliability, and low computational overhead are priorities.
 
-From a deployment perspective, modern lightweight stacks favor API-first backend services and decoupled clients across web and mobile platforms. This approach improves maintainability, simplifies debugging, and allows each layer to scale independently. FastAPI documentation and community practice demonstrate efficient development of typed REST endpoints, while lightweight web and mobile clients support gradual product evolution without tightly coupling presentation logic to backend internals.
+Regular-expression extraction combined with validation logic can reliably capture core fields such as amount, date-time, transaction code, direction, and counterpart descriptors. Defensive parsing strategies are particularly important when template variations and partial text corruption occur.
 
-Usability literature (including Nielsen's heuristics) highlights visibility of system status, consistency, error prevention, and user control as key factors. The developed interface includes API online indicators, clear action states, informative error messages, and explicit navigation paths, supporting these principles at MVP stage.
+### 2.3.3 Categorization and Human-in-the-Loop Learning
+
+Spending categorization literature commonly distinguishes between rule-based, machine-learning, and hybrid approaches. For early-stage, explainability-first tools, hybrid approaches are frequently preferred.
+
+A practical pattern is to apply user-learned mappings first (from prior corrections), then keyword fallback logic for unseen descriptions. This balances consistency, transparency, and adaptability across evolving spending patterns.
+
+### 2.3.4 Dashboard Analytics and Behavioral Insight
+
+Visualization studies indicate that concise KPIs and category distributions reduce cognitive load and improve decision speed. Typical high-value indicators include total spending, top spending category, transaction count, and warning flags.
+
+Rule-based insights (for example high betting share or high frequency micro-transfers) can provide actionable nudges without requiring opaque scoring models.
+
+## 2.4 Review of Similar Systems
+
+### 2.4.1 Conventional Budgeting Applications
+
+Many mainstream budgeting apps assume direct bank integrations, subscriptions, or high manual data entry. In mobile-money-first contexts, these assumptions create usability friction and reduce sustained engagement.
+
+### 2.4.2 Bank-Centric Personal Finance Dashboards
+
+Bank dashboards provide strong account-centric analytics but are often inaccessible to users whose primary transaction channel is mobile money SMS. Their architecture and onboarding flows may not match informal or hybrid financial behavior patterns.
+
+### 2.4.3 SMS Expense Trackers and Lightweight Ledgers
+
+Lightweight trackers improve accessibility but often lack robust parsing, adaptive categorization, and integrated budget alerting. Where analytics exist, they are sometimes too shallow to support practical monthly planning.
+
+## 2.5 Identified Gaps and Proposed Improvements
+
+From the literature and system review, three major implementation gaps emerge:
+
+1. **Low-Friction SMS-to-Insight Pipelines Are Rare:** Existing tools either over-rely on manual entry or depend on unavailable banking APIs.
+2. **Category Consistency Is Weak Over Time:** Many systems do not effectively learn from user corrections.
+3. **Budget Monitoring Is Often Reactive:** Users get poor warning visibility before overspending.
+
+To address these gaps, the M-PESA SMS Spending Analyzer implements:
+
+1. **Unified SMS Ingestion and Parsing:** Single and bulk message input transformed into structured transaction records.
+2. **Hybrid Categorization with Learning:** User corrections persist and improve future categorization accuracy.
+3. **Action-Oriented Dashboard and Alerts:** Category breakdowns, summary metrics, and threshold notifications for proactive control.
 
 ## 2.6 Conceptual Framework
 
-Figure 2.1 Conceptual Framework for the M-PESA Spending Analyzer
+The conceptual framework explains how raw SMS messages are converted into budgeting intelligence.
 
-Independent Variables:
+### 2.6.1 Conceptual Diagram
 
-1. Availability of raw M-PESA SMS transaction messages.
+```mermaid
+flowchart TD
+    A[Raw M-PESA SMS Messages] --> B[Web/Mobile Submission]
+    B --> C[Parsing & Normalization Engine]
+    C --> D[Structured Transaction Store]
+    D --> E[Hybrid Categorization
+Learned Mappings + Keywords]
+    E --> F[Analytics & Summary Engine]
+    F --> G[Dashboard KPIs
+Totals Categories Trends]
+    F --> H[Budget Threshold Monitor]
+    H --> I[Notification Engine]
+    I --> J[User Alerts: Near Limit/Exceeded]
+    G --> K[Improved Spending Awareness]
+    J --> K
+    K --> L[Better Monthly Budget Decisions]
+```
 
-2. Parsing and categorization logic quality.
+### 2.6.2 Variable Relationship Summary
 
-3. User-provided context notes and manual category corrections.
+**Independent Variables**
 
-4. Budget limit configuration and threshold policies.
+1. Availability and quality of SMS transaction messages.
+2. Parser and normalization logic quality.
+3. Categorization rule coverage and learned mapping depth.
+4. Budget limit configuration by users.
 
-Intervening Variables:
+**Intervening Variables**
 
-1. Message format variability.
+1. SMS format variability.
+2. User correction behavior.
+3. Infrastructure/deployment constraints.
+4. Data completeness and sync consistency.
 
-2. User data entry quality.
+**Dependent Variables**
 
-3. Infrastructure constraints (local vs MySQL deployment).
-
-Dependent Variables:
-
-1. Accuracy and consistency of categorized spending records.
-
-2. Timeliness of budget/spending alerts.
-
+1. Categorization accuracy and consistency.
+2. Timeliness of budget alerts.
 3. User visibility into spending behavior.
+4. Improvement in short-term budgeting decisions.
 
-4. Improved short-term budgeting decisions.
+## 2.7 How the Web and Mobile Applications Work
 
-Narrative relation:
+The analyzer uses one backend service with both web and mobile clients consuming the same API and business logic.
 
-Raw SMS inputs are processed by parser and categorization modules, enhanced by user feedback. Structured outputs feed summaries, insights, and notification logic. These outputs influence user awareness and spending control behavior.
+### 2.7.1 Web Application Workflow
 
-## 2.7 Literature Gap Summary
+1. User authenticates via the web interface.
+2. User submits one SMS or uploads/pastes multiple SMS entries.
+3. Backend parses messages, stores structured transactions, and applies categorization.
+4. Dashboard displays totals, category aggregates, and warnings.
+5. User can edit categories; edits update learned mappings for future predictions.
 
-The literature confirms strong mobile money adoption but limited practical tooling that transforms SMS transaction histories into simple personal financial intelligence for everyday users. Existing systems often over-emphasize integration complexity or require high manual effort.
+### 2.7.2 Mobile Application Workflow
 
-The gap addressed by this project is therefore a lightweight, explainable, user-scoped analyzer that works from accessible SMS inputs and provides immediate dashboard-level insights without expensive ecosystem dependencies. This gap directly informed the methodology, system architecture, and implementation choices described in the next chapter.
+1. User signs in through the mobile app.
+2. User submits SMS content or syncs captured transaction text.
+3. The same backend parsing and categorization pipeline is executed.
+4. Mobile views show summaries, recent transactions, and budget status.
+5. Alerts are shown in-app (and can be extended to push notifications in future iterations).
+
+### 2.7.3 Integrated Web–Mobile Operation Model
+
+Both clients operate as synchronized channels to one data and analytics core, ensuring:
+
+- Consistent categorization logic across platforms.
+- Real-time data parity between web and mobile views.
+- Reuse of user-learned mappings regardless of entry channel.
+- Easier maintenance through centralized API-first architecture.
+
+## 2.8 Chapter Summary
+
+This chapter reviewed relevant literature on mobile money usage, SMS parsing, transaction categorization, dashboard analytics, and usability-driven finance tooling. TAM was adopted to frame likely user adoption through usefulness and ease of use.
+
+The review identified clear gaps in low-friction SMS analytics, adaptive categorization, and proactive budget monitoring. The proposed M-PESA SMS Spending Analyzer addresses these gaps through integrated parsing, hybrid learning, actionable summaries, and synchronized web/mobile delivery. These findings directly inform the methodology and implementation decisions in Chapter Three.
+
 
 <<<PAGE_BREAK>>>
 
