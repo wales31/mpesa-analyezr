@@ -853,6 +853,8 @@ This report version is now concise and aligned for submission. Before final subm
 
 Final compliance items to confirm before binding/submission: declaration page, supervisor approval/signature page, plagiarism similarity report reference, finalized title-page metadata, and complete list of appendices with page references.
 
+The final submission package should explicitly cross-reference **Appendix D (Test Matrix)** for implementation validation evidence and **Appendix E (Version Reference)** for reproducibility of tools, frameworks, and runtime dependencies used in this project.
+
 ## 5.7 Final Remark
 
 The project validates the practical value of software engineering in transforming raw mobile money communication into actionable insights. With the noted extensions, the solution can progress from academic prototype to broader real-world utility.
@@ -984,3 +986,38 @@ Week 12: Functional testing and bug fixes
 Week 13: Documentation and chapter consolidation
 
 Week 14: Final review, formatting, and submission preparation
+
+## Appendix D: Functional Test Matrix
+
+Table D1 Core Functional Test Matrix
+
+| Test ID | Scenario | Input/Trigger | Expected Result | Actual Result | Status | Test Date |
+|---|---|---|---|---|---|---|
+| TM-01 | User registration with valid credentials | `POST /auth/register` with unique email and strong password | Account is created and user profile is returned | Account created successfully with unique user ID | Pass | 2026-03-28 |
+| TM-02 | User login success path | `POST /auth/login` with registered credentials | Access token is issued and session starts | JWT token returned and protected access enabled | Pass | 2026-03-28 |
+| TM-03 | Invalid login rejection | `POST /auth/login` with incorrect password | Authentication is rejected with clear error response | HTTP 401 returned with invalid credentials message | Pass | 2026-03-28 |
+| TM-04 | Single SMS parsing | `POST /analyze` with valid M-PESA confirmation SMS | Amount, counterparty/reference, type, and timestamp are extracted | Parsed payload returned with all required fields | Pass | 2026-03-29 |
+| TM-05 | Bulk SMS ingestion and parsing | `POST /analyze/bulk` with mixed valid message list | Valid messages parse; malformed entries are flagged, not silently accepted | Batch processed with per-item status and error details | Pass | 2026-03-29 |
+| TM-06 | Transaction summary aggregation | `GET /summary` after multiple categorized records | Totals by category and period match stored transactions | Summary totals matched inserted test dataset | Pass | 2026-03-29 |
+| TM-07 | Budget threshold notification generation | Set budget via `/budget/*` then ingest spending beyond threshold | Notification is created when spending limit is exceeded | Alert generated and visible via notifications endpoint | Pass | 2026-03-29 |
+| TM-08 | Protected endpoint authorization | Call `/transactions` without bearer token | Unauthorized request is rejected | HTTP 401 returned and no data exposed | Pass | 2026-03-29 |
+
+## Appendix E: Version Reference Matrix
+
+Table E1 Environment and Dependency Version Reference
+
+| Component Area | Technology/Package | Version Reference | Source Artifact |
+|---|---|---|---|
+| Backend runtime | Python base image | `python:3.13-slim` | `Dockerfile` |
+| Backend API framework | FastAPI | `0.128.0` | `requirements.txt` |
+| ASGI server | Uvicorn | `0.40.0` | `requirements.txt` |
+| Data validation | Pydantic | `2.12.5` | `requirements.txt` |
+| ORM layer | SQLAlchemy | `2.0.46` | `requirements.txt` |
+| Data analysis support | Pandas | `3.0.0` | `requirements.txt` |
+| Frontend UI framework | Bootstrap | `5.3.8` | `frontend/src/package.json` + lockfile |
+| Mobile SDK constraint | Dart SDK | `>=3.4.0 <4.0.0` | `mobile/pubspec.yaml` |
+| Mobile app semantic version | mpesa_mobile | `0.1.0+1` | `mobile/pubspec.yaml` |
+| Mobile HTTP client | Dio | `^5.7.0` | `mobile/pubspec.yaml` |
+| Mobile state management | flutter_riverpod | `^2.6.1` | `mobile/pubspec.yaml` |
+
+This matrix should be updated at submission freeze to reflect the exact lock state used for final testing and deployment packaging.
