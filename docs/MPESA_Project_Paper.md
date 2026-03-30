@@ -286,83 +286,59 @@ Within this context, the present study designed and implemented a practical API-
 
 ## 1.3 Problem Statement
 
-Although M-PESA users receive transaction confirmations for nearly every financial action, the messages remain in unstructured form and are difficult to use for meaningful spending analysis. The following problems were identified:
+Current personal expense tracking for many M-PESA users in Kenya is fragmented, manual, and inefficient. Although transaction confirmations are sent instantly by SMS, users often leave this information scattered across inboxes without a centralized way to structure and analyze spending in real time. This causes delays in identifying overspending, creates data gaps in budgeting, and limits timely corrective action.
 
-1. Users lack an automated and reliable way to convert raw M-PESA SMS messages into structured expense records.
-
-2. Spending categories are not consistently tracked, making it difficult to determine where money is being consumed most.
-
-3. Many users do not receive timely warnings when spending approaches or exceeds planned monthly limits.
-
-4. Available alternatives may require expensive integrations, heavy setup, or manual input, which discourages regular use.
-
-These operational gaps reduce the quality of personal financial decisions and limit the ability of users to plan, control, and improve monthly expenditure.
+Existing alternatives are frequently disconnected from direct SMS workflows, require manual entry, or involve setup and integration barriers that reduce adoption. As a result, individuals and households remain under-informed about daily spending behavior and month-end financial risk. Therefore, there is a need for a centralized, user-driven platform that automatically parses M-PESA messages, categorizes transactions, and presents live financial insights to improve budgeting decisions and financial control.
 
 ## 1.4 Objectives
 
 ### 1.4.1 Main Objective
 
-To design and implement an M-PESA SMS Spending Analyzer that automatically structures transaction messages, categorizes spending, and provides actionable financial insights through a web dashboard and app-ready client architecture.
+To design and implement a web-based M-PESA SMS spending analysis platform that enhances real-time expense visibility, budgeting awareness, and user financial decision-making in Kenya.
 
 ### 1.4.2 Specific Objectives
 
-(i) To investigate limitations of manual and existing digital spending tracking methods used by M-PESA users.
+i. To identify challenges and user requirements in current M-PESA spending tracking and budgeting practices.
 
-(ii) To develop a secure and lightweight backend service that parses M-PESA SMS messages and stores normalized transactions per authenticated user.
+ii. To design an interactive platform that enables users to upload or sync SMS records and visualize categorized transactions through a live dashboard.
 
-(iii) To design and implement user-facing clients, beginning with a web dashboard and mobile app foundation, that present transaction history, category summaries, insights, and budget-related indicators.
+iii. To develop a working prototype integrating automated SMS parsing, category analytics, budget-limit monitoring, and notification support.
 
-(iv) To evaluate system functionality and usability through scenario-based testing of parsing, categorization, analytics, and notification workflows.
+iv. To evaluate the system’s usability, reliability, and efficiency in improving expense tracking, awareness, and budget compliance.
 
 ## 1.5 Research Questions
 
-1. What key limitations do M-PESA users face when tracking spending manually or with existing tools?
+i. What are the major challenges and user needs in existing M-PESA-based spending tracking mechanisms?
 
-2. How can raw M-PESA SMS messages be parsed and normalized into accurate transaction records for analysis?
+ii. How can a web platform enable users to convert raw M-PESA SMS messages into clear, categorized spending information in real time?
 
-3. How effective is a lightweight categorization and spending-tracker interface model in improving user visibility of monthly spending patterns?
+iii. How effective is the system in delivering timely budget alerts and supporting financial decision-making?
 
-4. To what extent does budget limit and notification support improve timely financial awareness for users?
+iv. How does the platform improve spending accuracy, usability, and overall personal financial coordination?
 
 ## 1.6 Significance of the Study
 
-The study contributes practical and academic value in several ways. First, it demonstrates a low-cost approach to personal finance analytics using already available SMS data, reducing dependency on complex external integrations. Second, it provides an implementable architecture combining FastAPI, SQLAlchemy, static web components, and an emerging mobile client layer, which can be replicated in similar academic and community projects.
+This project empowers M-PESA users to actively monitor their financial behavior through structured, real-time spending information derived from SMS records. It strengthens personal and household budgeting by highlighting category trends, unusual spending spikes, and near-limit alerts before month-end pressure escalates.
 
-For users, the system improves transparency in daily transactions by showing total spending, top spending categories, and behavioral alerts. For software engineering learners, the project offers a complete end-to-end case study involving requirements analysis, secure authentication, data modeling, API design, web/mobile client integration, and deployment planning. For future researchers, the project establishes a baseline for extending categorization logic, applying machine learning models, and integrating broader digital finance channels.
+Practically, the platform demonstrates how affordable digital finance intelligence can be built from tools already available to most users, without requiring full banking integrations. Academically, the study combines backend engineering, web analytics, and applied data processing in a real-world problem-solving context. It provides a reusable foundation for future work in intelligent categorization, predictive budgeting, and broader digital financial inclusion initiatives in Kenya.
 
 ## 1.7 Scope and Limitation of the Study
 
 ### Scope
 
-The project scope includes:
+The study focuses on developing a Minimum Viable Product (MVP) for M-PESA spending analysis in Kenya featuring:
 
-1. Parsing selected M-PESA SMS patterns for key fields such as amount, transaction type, recipient, reference, and occurrence time.
+- A web interface for user authentication, transaction ingestion, and dashboard-based expense tracking.
 
-2. User registration, login, and token-based authentication for personalized transaction ownership.
+- Automated M-PESA SMS parsing and normalization for structured storage and reporting.
 
-3. Storage and retrieval of transactions in SQLite or MySQL/MariaDB through SQLAlchemy.
+- Category summaries, trend insights, and budget-limit alerts to support timely user action.
 
-4. Expense categorization using hybrid rules (keyword fallback plus learned user mapping keys).
-
-5. Web dashboard features for summary, insights, recent transactions, notifications, and budget limit interaction.
-
-6. Prototype mobile app features for API configuration, authentication, and summary retrieval as a foundation for a future spending tracker.
-
-7. Local development and deployment workflow using `uvicorn`, static file hosting, and optional mobile app connectivity.
+- API-first integration to support current web clients and future mobile application expansion.
 
 ### Limitations
 
-1. Parsing currently focuses on common message formats and may not cover all telecom message variations.
-
-2. Categorization remains rule-based and may misclassify unusual or ambiguous transaction descriptions.
-
-3. The current mobile app is still a foundation and does not yet include full inbox sync, transaction review, or complete budgeting workflows.
-
-4. Budget planning in the current frontend is partly local-storage based, with gradual backend alignment in progress.
-
-5. Testing concentrated on functional scenarios within local environments and did not include large-scale production load testing.
-
-6. The study focused on software implementation and did not conduct long-duration longitudinal behavioral impact analysis.
+Mobile inbox synchronization automation, advanced machine-learning categorization, and large-scale production deployment are outside this phase. System performance and insight quality also depend on message consistency, internet access, and active user participation in reviewing or correcting categories. Despite these limitations, the MVP demonstrates the feasibility and value of practical, SMS-driven personal finance analytics for M-PESA users.
 
 ## 1.8 Proposed Modules
 
