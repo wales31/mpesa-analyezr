@@ -691,443 +691,171 @@ These controls were integrated into implementation decisions and testing practic
 
 # CHAPTER FOUR
 
-# SYSTEM IMPLEMENTATION AND DEPLOYMENT
+# SYSTEM IMPLEMENTATION, VALIDATION, AND DEPLOYMENT
 
 ## 4.1 Introduction
 
-This chapter presents the practical implementation of the M-PESA SMS Spending Analyzer. It explains the development environment, coding approach, implementation sequence, testing process, and deployment workflow. The chapter transitions from design and methodology into actual solution realization.
+This chapter summarizes how the M-PESA SMS Spending Analyzer was implemented, tested, and prepared for deployment. It presents the production-relevant setup, implementation status by module, validation outcomes, and operational readiness checkpoints.
 
-## 4.2 Development Environment Setup
+Implementation success criteria for this project were: (i) secure user authentication working end-to-end, (ii) successful parsing and storage of valid SMS messages, (iii) reliable rejection/flagging of malformed inputs, (iv) correct summary aggregation by category and period, and (v) generation of budget-related notifications under defined thresholds.
 
-Table 4.1 Development Tools and Environment
+## 4.2 Current Implementation Stack (Updated)
 
-Programming language: Python 3 (backend), JavaScript ES6 (web frontend), TypeScript (mobile app)
+The implemented system uses:
 
-Backend framework: FastAPI
+- **Backend:** Python + FastAPI (REST API)
+- **Data access:** SQLAlchemy ORM
+- **Validation:** Pydantic schemas
+- **Database:** SQLite (default) with MySQL/MariaDB compatibility
+- **Web client:** HTML, CSS, Bootstrap, Vanilla JavaScript
+- **Mobile client:** Flutter (Dart)
+- **Runtime server:** Uvicorn
+- **Version control:** Git
 
-Data layer: SQLAlchemy ORM
+This stack was retained because it supports rapid development, clear API contracts, and easy transition from local proof-of-concept to small-scale hosted environments.
 
-Validation layer: Pydantic models
+Final verification baseline (submission build): FastAPI 0.128.0, SQLAlchemy 2.0.46, Pydantic 2.12.5, Uvicorn 0.40.0, Bootstrap 5.3.8, and SQLite 3.x/MySQL-compatible backend setup. Mobile baseline uses Flutter SDK range >=3.4.0 <4.0.0 with Dio 5.7.0 and Riverpod 2.6.1. These values should be mirrored in the final appendix for reproducibility.
 
-Database options: SQLite (default), MySQL/MariaDB (optional)
+## 4.3 Implementation Status by Module
 
-Frontend stack: HTML5, CSS3, Bootstrap 5, Vanilla JavaScript, Expo React Native
+### 4.3.1 Backend Services
 
-Server runtime: Uvicorn (ASGI)
+Implemented backend capabilities include:
 
-Version control: Git
+1. **Authentication** (`/auth/register`, `/auth/login`, `/auth/me`) with password hashing and token-based access control.
+2. **SMS analysis** (`/analyze`, `/analyze/bulk`) for extracting amount, recipient/reference, transaction type, and timestamp.
+3. **Transaction management** (`/transactions`, update category, delete flows) for review and correction.
+4. **Analytics** (`/summary`, `/insights`) for category totals, monthly snapshots, and spending cues.
+5. **Budget and notifications** (`/budget/*`, `/notifications/*`) for threshold alerts and read-state management.
 
-Operating mode: Local development and testing
+### 4.3.2 Web and Mobile Clients
 
-### Environment Configuration
+Implemented client-side capabilities include:
 
-Backend setup steps:
+- **Web:** authentication, SMS ingestion (single/bulk), dashboard summaries, transaction display, and budget pages.
+- **Mobile (Flutter):** authentication, API configuration, and protected summary retrieval.
 
-1. Create virtual environment and install dependencies from `requirements.txt`.
+Current mobile coverage is intentionally limited to core access and summary verification, while full ingestion and budgeting interactions remain roadmap items.
 
-2. Configure database through environment variables (`MPESA_DATABASE_URL` or `MYSQL_*`).
+Evidence of implementation should include at least two screenshots in the final report: (1) dashboard summary view after SMS ingestion, and (2) budget/notification view showing threshold alerts. Each figure should include a short caption describing scenario, date, and expected behavior.
 
-3. Start API server using `uvicorn backend.main:app --reload`.
+## 4.4 Testing and Validation Results
 
-Web frontend setup steps:
+Testing focused on functional reliability and end-user flow continuity.
 
-1. Serve static pages from `frontend/src` using Python HTTP server.
+### 4.4.1 Test Scope
 
-2. Access UI via browser and connect to API base URL.
+The following were validated:
 
-3. Persist authentication token in browser local storage for session continuity.
+- User registration/login success and failure paths
+- Single and bulk SMS parsing behavior
+- Parse-error handling for malformed messages
+- Summary and category aggregation correctness
+- Manual category correction persistence
+- Budget-threshold notification generation
+- Unauthorized access rejection on protected routes
 
-Mobile setup steps:
+### 4.4.2 Outcome Summary
 
-1. Install mobile dependencies from `mobile/package.json`.
+All core functional tests passed in the controlled environment used for development. Results indicate the platform is stable for academic demonstration and pilot-style usage.
 
-2. Start Expo in LAN or USB mode and configure the API base URL in-app.
+### 4.4.3 Quality Controls Applied
 
-3. Authenticate and retrieve the protected summary screen through the shared backend API.
+- Input validation through typed schemas
+- User-scoped data access enforcement
+- Duplicate transaction checks
+- Structured error responses for client recovery
 
-### Why These Tools Were Selected
+A compact test matrix is recommended in the appendix with fields: Test ID, Scenario, Input, Expected Result, Actual Result, Status, and Test Date. This provides traceability between Chapter Four narrative claims and empirical validation evidence.
 
-1. FastAPI offers rapid API development, type validation, and documentation support.
+## 4.5 Deployment and Operational Readiness
 
-2. SQLAlchemy provides flexible ORM modeling and backend portability.
+Deployment readiness steps include:
 
-3. Static frontend architecture lowers complexity and deployment cost for the browser client.
+1. Install backend dependencies and configure environment variables.
+2. Initialize and verify database connectivity.
+3. Start API service and validate health endpoints.
+4. Serve web static files and confirm API integration.
+5. Run smoke flow: register/login → ingest SMS → view summary → check notifications.
 
-4. Expo React Native accelerates early mobile delivery while keeping the spending-tracker roadmap aligned with the same backend contracts.
+A rollback approach is defined: restore prior configuration/code revision and restart the last stable release.
 
-5. Bootstrap accelerates responsive UI construction with minimal custom CSS overhead.
+## 4.6 Post-Deployment Support Plan
 
-6. SQLite enables quick startup while MySQL/MariaDB supports migration to broader usage contexts.
+Planned maintenance covers parser rule expansion, category quality improvements, dependency/security updates, and performance tuning. Support documentation should include API usage notes, common troubleshooting steps, and change logs.
 
-## 4.3 Implementation Steps
+Planned hosting target: containerized backend on a small cloud VM (or university-managed VPS), static web client served via Nginx, and managed MySQL for multi-user deployment. Maintenance ownership is assigned to the project team during pilot phase, then transitioned to an appointed system custodian with documented handover.
 
-### 4.3.1 Backend Implementation
+## 4.7 Chapter Summary
 
-Step 1: Application bootstrap and routing
-
-A modular API architecture was implemented with endpoint classes registered through a router registry. This improved organization and maintainability.
-
-Step 2: Authentication layer
-
-Endpoints implemented:
-
-1. `POST /auth/register`
-
-2. `POST /auth/login`
-
-3. `GET /auth/me`
-
-Security features implemented:
-
-1. PBKDF2 password hashing.
-
-2. Token issuance and expiry management.
-
-3. Token hash storage for reduced exposure.
-
-4. Authorization dependency to resolve current user.
-
-Step 3: Message analysis endpoints
-
-Endpoints implemented:
-
-1. `POST /analyze` for single-message ingestion.
-
-2. `POST /analyze/bulk` for multi-message ingestion.
-
-The parser extracts amount, timestamp, optional reference, recipient, and transaction type. Deduplication checks are done using user ID and reference code.
-
-Step 4: Categorization and learning
-
-The categorization pipeline applies:
-
-1. User-learned mapping keys.
-
-2. Keyword fallback when learned rules are absent.
-
-Manual category updates are persisted via learned rules for future consistency.
-
-Step 5: Analytics and transaction operations
-
-Endpoints implemented:
-
-1. `GET /transactions`
-
-2. `PUT /transactions/{id}/category`
-
-3. `DELETE /transactions`
-
-4. `GET /summary`
-
-5. `GET /insights`
-
-These endpoints support browsing, correction, cleanup, and interpretation of transaction data.
-
-Step 6: Budget and notification features
-
-Endpoints implemented:
-
-1. `PUT /budget/limit`
-
-2. `GET /budget/limit`
-
-3. `POST /notifications/refresh`
-
-4. `GET /notifications`
-
-5. `PATCH /notifications/{id}/read`
-
-6. `POST /notifications/read-all`
-
-Notification generation includes budget-threshold alerts and insight-driven messages with deduplication keys.
-
-### 4.3.2 Client Implementation
-
-Frontend pages and functions:
-
-1. `auth.html` and `auth.js`: registration and sign-in workflows.
-
-2. `spending.html` and `spending.js`: single/bulk SMS ingestion.
-
-3. `index.html` and `dashboard.js`: KPIs, summaries, transactions, and notifications.
-
-4. `budget.html` and `budget.js`: budget planning and actual-vs-planned comparison.
-
-Shared interaction utilities (`app.js` and `init.js`) provide API communication, token persistence, API health checks, and page access control.
-
-Mobile app functions:
-
-1. `App.tsx`: root application setup and auth-state switching.
-
-2. `AuthScreen.tsx`: API base configuration, register/login, and connection testing.
-
-3. `HomeScreen.tsx`: authenticated profile and spending summary retrieval.
-
-4. Shared client modules: typed API requests, auth context, and local session persistence.
-
-### 4.3.3 Coding Standards and Practices
-
-The following practices were applied:
-
-1. Separation of concerns across API endpoints, business logic, mappers, and models.
-
-2. Type hints and schema validation for safer interface contracts.
-
-3. Clear error responses for invalid requests and unauthorized access.
-
-4. Incremental commits and targeted refactoring for readability.
-
-5. Explainable rule logic in parser/categorizer for easy debugging.
-
-## 4.4 Testing and Quality Assurance
-
-Testing focused on functional correctness and user workflow reliability.
-
-### 4.4.1 Testing Strategy
-
-1. Unit-like behavior checks for parser and categorization scenarios.
-
-2. Endpoint-level validation using controlled request payloads.
-
-3. Integration checks across web/mobile client actions and backend responses.
-
-4. Regression checks after category, budget, and notification updates.
-
-### 4.4.2 Functional Test Cases
-
-Table 4.2 Functional Test Cases and Outcomes
-
-TC1: Register with valid credentials
-
-Input: email, username, password
-
-Expected: token and user object returned
-
-Outcome: Pass
-
-TC2: Login with invalid password
-
-Expected: 401 invalid credentials response
-
-Outcome: Pass
-
-TC3: Analyze single valid SMS message
-
-Expected: parsed transaction stored and returned
-
-Outcome: Pass
-
-TC4: Analyze malformed SMS message
-
-Expected: 400 parse error
-
-Outcome: Pass
-
-TC5: Analyze bulk with mixed valid/invalid lines
-
-Expected: partial success with stored/failed counts
-
-Outcome: Pass
-
-TC6: Retrieve summary after multiple transactions
-
-Expected: correct total and category aggregates
-
-Outcome: Pass
-
-TC7: Update transaction category manually
-
-Expected: category updated and learning rule persisted
-
-Outcome: Pass
-
-TC8: Set budget below current monthly spend
-
-Expected: warning notification generated
-
-Outcome: Pass
-
-TC9: Mark all notifications as read
-
-Expected: unread count reduced to zero
-
-Outcome: Pass
-
-TC10: Access protected endpoint without token
-
-Expected: 401 unauthorized response
-
-Outcome: Pass
-
-### 4.4.3 Quality Assurance Controls
-
-1. Input validation via Pydantic schemas.
-
-2. Database integrity constraints for duplicate protection and valid value ranges.
-
-3. Authentication enforcement on all protected routes.
-
-4. User-scoped query filtering for privacy.
-
-5. Error-first fallback behavior on network/API failures in frontend.
-
-## 4.5 Deployment Plan
-
-The deployment strategy targeted predictable local and small-environment operation.
-
-### Deployment Steps
-
-1. Provision Python runtime and install dependencies.
-
-2. Configure DB backend (SQLite default or MySQL/MariaDB environment variables).
-
-3. Start backend API server.
-
-4. Serve frontend static files.
-
-5. Validate `/` health endpoint and key protected endpoints.
-
-6. Register first user and execute smoke workflow (ingest -> summary -> notifications).
-
-Table 4.3 Deployment and Rollback Checklist
-
-Checklist item 1: Environment variables verified
-
-Checklist item 2: Database initialized and reachable
-
-Checklist item 3: API health endpoint returns success
-
-Checklist item 4: Authentication endpoints working
-
-Checklist item 5: Analyze and summary endpoints working
-
-Checklist item 6: Notification refresh and read-all flows working
-
-Rollback plan: if release fails, stop API process, restore previous `.env` and code revision, and restart known stable version.
-
-## 4.6 Go-Live Plan
-
-For controlled rollout, the following sequence is recommended:
-
-1. Pre-go-live dry run with synthetic messages.
-
-2. Limited user pilot phase.
-
-3. Monitor error logs, parsing failures, and response latency.
-
-4. Collect feedback on category accuracy and dashboard clarity.
-
-5. Apply quick-fix updates and retest.
-
-6. Expand to broader usage once baseline stability is confirmed.
-
-Post-deployment monitoring metrics:
-
-1. API uptime and response success rate.
-
-2. Parser failure ratio.
-
-3. Duplicate reference incidents.
-
-4. Notification creation/read ratios.
-
-5. User-reported categorization correction frequency.
-
-## 4.7 Maintenance and Support
-
-Maintenance activities include:
-
-1. Expanding parser patterns for additional M-PESA message variants.
-
-2. Updating keyword sets and learning rule controls.
-
-3. Reviewing and optimizing slow DB queries.
-
-4. Applying dependency security updates.
-
-5. Improving frontend usability based on user feedback.
-
-Support model:
-
-1. Maintain technical documentation (`README.md`, `docs/api.md`, `docs/database.md`, `docs/architecture.md`).
-
-2. Provide a troubleshooting guide for common API, CORS, and mobile configuration errors.
-
-3. Maintain issue logs and prioritize fixes by user impact.
-
-## 4.8 Chapter Summary
-
-The system was fully implemented as a modular API-driven platform with secure authentication, SMS-to-transaction processing, spending analytics, budget notifications, a complete web client, and a mobile app foundation. The deployment approach is practical for local and educational settings, and the architecture supports iterative enhancement toward production readiness.
+Chapter Four confirms that the solution has been implemented end-to-end at prototype level, validated across core workflows, and prepared with a practical deployment and maintenance approach suitable for submission and controlled rollout.
 
 <<<PAGE_BREAK>>>
 
 # CHAPTER FIVE
 
-# CONCLUSION, RECOMMENDATIONS AND FUTURE WORK
+# CONCLUSION, RECOMMENDATIONS, AND SUBMISSION READINESS
 
-## 5.1 Summary of the Study
+## 5.1 Conclusion
 
-This project set out to solve a practical challenge faced by many M-PESA users: difficulty converting SMS transaction records into useful spending intelligence. The developed M-PESA SMS Spending Analyzer demonstrates that a lightweight API-driven architecture can transform semi-structured messages into categorized, queryable, and visualized financial records across web and app-oriented clients.
+This study addressed the challenge of turning raw M-PESA SMS records into usable spending intelligence. The developed system demonstrates that a modular API-driven approach can parse, classify, store, and present transaction insights in a form that supports day-to-day financial awareness.
 
-The study covered the full project lifecycle from problem definition and literature review to methodology, implementation, testing, and deployment planning. Core objectives were achieved through development of authentication, parsing, categorization, summary analytics, insight generation, budget limit management, and notification modules.
+The project achieved its main objective by delivering authentication, message analysis, categorization support, summary analytics, and budget-notification features through interoperable web and mobile-connected clients.
 
 ## 5.2 Key Contributions
 
-1. A functioning end-to-end prototype for SMS-based personal spending analysis.
+Major contributions of this work are:
 
-2. A modular architecture balancing simplicity, security, and maintainability.
+1. A working prototype for converting mobile money SMS data into structured personal-finance records.
+2. A maintainable architecture separating API, data, and client concerns.
+3. A hybrid categorization approach combining rule-based logic with user correction feedback.
+4. A practical foundation for incremental extension to richer mobile and analytics features.
 
-3. A hybrid categorization strategy that combines explainable rules and user-driven learning.
+## 5.3 Study Limitations
 
-4. A practical dashboard experience for quick monthly spending awareness.
+The current version has the following limitations:
 
-5. A foundation for future expansion into a fuller mobile spending tracker, richer budgeting, and predictive analytics.
-
-## 5.3 Limitations
-
-1. Coverage of M-PESA message patterns is not exhaustive.
-
-2. Category classification is partly heuristic and may require periodic correction.
-
-3. Long-term behavioral impact on users was not measured through extended field studies.
-
-4. Current deployment and testing emphasize local environments over cloud-scale production conditions.
-
-5. The current mobile client covers authentication and summary access, but not yet full transaction-ingestion and budgeting workflows.
-
-6. Some budget workflows remain partially frontend-local and can be further normalized in backend APIs.
+1. Message-pattern coverage is not exhaustive across all real-world SMS variants.
+2. Categorization remains partly heuristic and may need periodic manual correction.
+3. Evaluation was performed in controlled development conditions, not large-scale production traffic.
+4. Mobile functionality is partial relative to the full product roadmap.
 
 ## 5.4 Recommendations
 
-1. Expand parser and normalization rules using a larger real-world anonymized message dataset.
+To strengthen the system beyond the current submission stage:
 
-2. Introduce semi-supervised or supervised machine learning for improved categorization precision.
+1. Expand parser coverage using a larger anonymized corpus of real transaction messages.
+2. Introduce more advanced classification methods (including supervised ML options) after sufficient labeled data is collected.
+3. Complete parity between web and mobile workflows (ingestion, review, budgeting, notifications).
+4. Add automated CI-based testing for regression control and release confidence.
+5. Improve observability with structured logs, metrics, and failure dashboards.
 
-3. Complete the spending tracker roadmap across web and mobile, including transaction review, category correction, and budget workflows.
-
-4. Add comprehensive backend budget CRUD and monthly report export capabilities.
-
-5. Implement role-based administration and audit trails for multi-user or institutional versions.
-
-6. Introduce automated test suites and CI pipelines for stronger release quality controls.
+Implementation phasing can be prioritized as: **Short-term** (parser expansion, CI tests, web/mobile parity for core flows), **Medium-term** (observability dashboards, advanced categorization models), and **Long-term** (multi-channel ingestion, forecasting/anomaly modules, offline-first sync at scale).
 
 ## 5.5 Future Work
 
 Future enhancements may include:
 
-1. OCR support for statement images and integration with additional payment channels.
+- Multi-channel transaction ingestion (beyond SMS)
+- Forecasting and anomaly detection for proactive spending alerts
+- Personalized budget suggestions from historical behavior
+- Offline-first synchronization for intermittent connectivity contexts
+- Hardened cloud deployment and operations automation
 
-2. Trend forecasting and anomaly detection for proactive financial coaching.
+## 5.6 Submission Readiness Checklist
 
-3. Personalized budget recommendations based on historical spending behavior.
+This report version is now concise and aligned for submission. Before final submission, confirm the following:
 
-4. A full-featured spending tracker app with inbox synchronization/import, transaction review, budget planning, and notification handling.
+- Formatting matches departmental template (headings, spacing, pagination, table numbering).
+- In-text citations and reference style are consistent.
+- Figures/tables referenced in text are present and captioned.
+- Any pending screenshots, environment versions, and appendix artifacts are inserted.
 
-5. Offline synchronization support and conflict-aware data refresh between device and backend.
+Final compliance items to confirm before binding/submission: declaration page, supervisor approval/signature page, plagiarism similarity report reference, finalized title-page metadata, and complete list of appendices with page references.
 
-6. Secure cloud deployment with observability dashboards and periodic model updates.
+## 5.7 Final Remark
 
-In conclusion, the project proves that practical software engineering can bridge the gap between raw mobile money data and actionable everyday financial insights.
+The project validates the practical value of software engineering in transforming raw mobile money communication into actionable insights. With the noted extensions, the solution can progress from academic prototype to broader real-world utility.
 
 <<<PAGE_BREAK>>>
 
