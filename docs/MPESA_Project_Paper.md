@@ -270,11 +270,11 @@ UML - Unified Modeling Language
 
 ## 1.1 Introduction
 
-Financial discipline depends heavily on a person’s ability to track cash flow accurately and frequently. In Kenya, M-PESA is one of the most widely used channels for sending, receiving, paying, and withdrawing money. Every transaction usually generates an SMS confirmation that contains useful details such as amount, date, recipient, and transaction reference. Although this data is readily available in users’ message inboxes, many users still struggle to transform the raw SMS records into meaningful monthly spending insights.
+Kenya continues to record high volumes of mobile money activity, with M-PESA transactions forming a major part of daily personal and household financial behavior. Payments for transport, food, utilities, school needs, and business purchases happen quickly and repeatedly, often leaving users with long SMS inboxes that are difficult to interpret. Although each M-PESA message contains important details such as amount, date, recipient, and reference code, these records are rarely converted into structured spending intelligence in real time. As a result, many users only estimate their expenses at the end of the month, which weakens budgeting discipline and financial planning.
 
-This project addresses that challenge by developing an M-PESA SMS Spending Analyzer that converts semi-structured SMS text into normalized transaction data, categorizes expenses, stores records securely per user, and presents analysis through a dashboard-oriented spending tracker platform. The system reduces manual effort and improves visibility into spending behavior. It is designed for local deployment and practical usability, with an API-first structure that supports both the current web client and a future full mobile app experience.
+To address this gap, this project proposes and implements an M-PESA SMS Spending Analyzer, a lightweight platform that automatically parses transaction messages, normalizes and categorizes spending records, and presents insights through an interactive dashboard. The solution is designed around an API-first architecture so that web and mobile clients can consume the same analysis services consistently. In addition, the system supports budget-limit monitoring and notification workflows to strengthen early awareness when expenditure trends become risky.
 
-This chapter introduces the study context, defines the project problem, states objectives and research questions, and presents the significance, scope, limitations, and core modules of the developed system.
+This chapter presents the study background, problem statement, objectives, research questions, significance, scope, limitations, and the core modules that make up the developed system.
 
 ## 1.2 Background of the Study
 
