@@ -208,15 +208,15 @@ Table C1 Project Schedule
 
 Figure 2.1 Conceptual Framework for the M-PESA Spending Analyzer
 
-Figure 3.1 Context Diagram
+Figure 3.1 Context Diagram (M-PESA Analyzer)
 
-Figure 3.2 Level 1 Data Flow Diagram (DFD)
+Figure 3.2 Level 1 Data Flow Diagram (M-PESA DFD)
 
-Figure 3.3 Use Case Diagram
+Figure 3.3 Use Case Diagram (M-PESA Analyzer)
 
-Figure 3.4 Entity Relationship Diagram (ERD)
+Figure 3.4 Entity Relationship Diagram (M-PESA Analyzer)
 
-Figure 3.5 User Interface Prototypes
+Figure 3.5 User Interface Prototypes (M-PESA Analyzer)
 
 Figure 4.1 Authentication and Session Flow
 
@@ -649,47 +649,47 @@ Data collection instruments are provided in Appendix B, including test scenario 
 
 ### 3.4.1 Context Diagram
 
-The context diagram shows the system boundary and mission: collecting raw incident reports from the Citizen, processing and validating the reports with the AI Service, and disseminating critical information to both the Citizen and the Response Agency.
+The context diagram shows the system boundary and mission: collecting raw M-PESA SMS messages from the user, parsing and categorizing transactions through the analyzer service, and returning actionable spending insights to the same authenticated user.
 
 Prompt to generate Figure 3.1 using ChatGPT image generation:
 
-"Create a clean academic context diagram titled 'Figure 3.1: Context Diagram' for a Community Disaster Reporting System. Place a central rounded rectangle labeled 'Community Disaster Reporting System'. Add an external actor 'Citizen' on the left, 'Response Agency' on the right, and 'AI Service' at the top. Draw directional arrows: Citizen to System labeled 'Raw report', AI Service to System labeled 'Validate and classify', System to Response Agency labeled 'Critical alert', Response Agency to System labeled 'Feedback', and System to Citizen labeled 'Status update'. Use a white background, professional blue/green/purple color accents, and readable labels suitable for a university report."
+"Create a clean academic context diagram titled 'Figure 3.1: Context Diagram' for an M-PESA SMS Spending Analyzer. Place a central rounded rectangle labeled 'M-PESA SMS Spending Analyzer'. Add external entities: 'User' on the left, 'M-PESA SMS Source' at the top, and 'Web/Mobile Dashboard' on the right. Draw directional arrows: M-PESA SMS Source to System labeled 'Raw SMS text', User to System labeled 'Submit / Sync messages', System to Dashboard labeled 'Summaries and insights', Dashboard to User labeled 'Visual spending feedback', and System to User labeled 'Notifications and alerts'. Use a professional report-ready style with clear labels."
 
 ### 3.4.2 Level 1 Data Flow Diagram (DFD)
 
-The Level 1 DFD expands the internal flow into three core processes: receiving the report, AI-based validation and prioritization, and notifying stakeholders while persisting records in the incident and alert data stores.
+The Level 1 DFD expands the transaction-processing flow into message ingestion, parsing/categorization, and analytics/notification delivery while storing normalized records for retrieval.
 
 Prompt to generate Figure 3.2 using ChatGPT image generation:
 
-"Generate a Level 1 Data Flow Diagram titled 'Figure 3.2: Level 1 Data Flow Diagram (DFD)' for a Community Disaster Reporting System. Include external entities: Citizen and Response Agency. Include processes: P1 Receive Report, P2 AI Validation and Prioritization, P3 Notify Stakeholders. Include data stores: D1 Incident Report Store and D2 Alert Log. Show arrows for report submission, process flow P1 to P2 to P3, critical alert delivery to Response Agency, response feedback, and writes to both data stores. Keep the layout clear, use standard DFD style with labeled arrows, and make it print-ready for a Word document."
+"Generate a Level 1 Data Flow Diagram titled 'Figure 3.2: Level 1 Data Flow Diagram (DFD)' for an M-PESA SMS Spending Analyzer. Include external entity: User. Include processes: P1 Ingest SMS, P2 Parse and Categorize Transaction, P3 Generate Summary/Insights/Notifications. Include data stores: D1 Transactions DB, D2 Budget Limits, D3 Notifications. Show data flows for message input, parsed fields, categorized transaction storage, summary retrieval, budget checks, and alert generation back to the user dashboard. Use standard DFD notation and make it print-ready for a Word report."
 
 ### 3.4.3 Use Case Diagram
 
-The use case model identifies the two primary actors (Citizen and Response Agency) and the major interactions they perform with the Community Disaster Reporting System.
+The use case model identifies how a user and supporting system services interact with the analyzer from account access to spending intelligence retrieval.
 
 Prompt to generate Figure 3.3 using ChatGPT image generation:
 
-"Create a UML use case diagram titled 'Figure 3.3: Use Case Diagram' for a Community Disaster Reporting System. Draw a system boundary box labeled 'Community Disaster Reporting System'. Place actor 'Citizen' on the left and actor 'Response Agency' on the right. Add use cases inside the boundary: Submit Incident Report, Receive Validation Feedback, Track Incident Status, Receive Critical Alert, Send Response Update. Connect Citizen to the first three use cases and Response Agency to the last two use cases. Use a formal academic look with crisp lines and readable text."
+"Create a UML use case diagram titled 'Figure 3.3: Use Case Diagram' for an M-PESA SMS Spending Analyzer. Draw a system boundary labeled 'M-PESA SMS Spending Analyzer'. Place actor 'User' on the left and optional actor 'Admin/System Service' on the right. Add use cases: Register/Login, Analyze Single SMS, Analyze Bulk SMS, View Transactions, View Spending Summary, Set Budget Limit, View Notifications, Mark Notifications Read, Clear Transactions. Connect User to all end-user actions and Admin/System Service to automated insight and notification tasks. Keep the style clean and academic."
 
 ### 3.4.4 Entity Relationship Diagram (ERD)
 
-The ERD defines the core entities and cardinalities needed for persistence: users submit reports, reports trigger responses, and responses are linked to agencies.
+The ERD defines the core persistence model for authentication, transaction analytics, budgeting, and notification management in the analyzer.
 
 Prompt to generate Figure 3.4 using ChatGPT image generation:
 
-"Design an Entity Relationship Diagram titled 'Figure 3.4: Entity Relationship Diagram (ERD)' for a Community Disaster Reporting Application database. Include entities and attributes: Users(user_id PK, phone, role), Reports(report_id PK, user_id FK, location, severity, description), Responses(response_id PK, report_id FK, agency_id FK), Agencies(agency_id PK, name, contact). Show relationships and cardinalities: one User submits many Reports, one Report can have many Responses, each Response belongs to one Agency. Use crow's foot notation or clearly labeled 1-to-many connectors. Keep it neat and suitable for insertion in a university project report."
+"Design an Entity Relationship Diagram titled 'Figure 3.4: Entity Relationship Diagram (ERD)' for an M-PESA SMS Spending Analyzer database. Include entities and attributes: Users(id PK, phone_number/email, password_hash), Transactions(id PK, user_id FK, mpesa_ref, amount, transaction_type, category, timestamp), UserBudgetLimits(id PK, user_id FK, month, limit_amount), Notifications(id PK, user_id FK, title, body, is_read, created_at), AuthTokens(id PK, user_id FK, token_hash, expires_at), CategoryLearningRules(id PK, user_id FK, keyword, mapped_category). Show one-to-many relationships from Users to each dependent table using clear cardinalities. Use a professional ERD layout for a final-year report."
 
 ### 3.4.5 User Interface Prototypes
 
-The UI prototype sketches illustrate the expected interaction surfaces for both sides of the platform: mobile report submission for Citizens and a web dashboard workflow for Response Agencies.
+The UI prototype sketches illustrate the expected user interaction surfaces for SMS ingestion, dashboard analytics, and budgeting workflows across web and mobile clients.
 
 Prompt to generate Figure 3.5 using ChatGPT image generation:
 
-"Create a side-by-side low-fidelity UI prototype image titled 'Figure 3.5: User Interface Prototypes' for a Community Disaster Reporting System. Left panel: mobile citizen reporting screen with fields Incident Title, Location, Description, Attach Image button, and Submit button. Right panel: web response-agency dashboard with filter bar (critical/pending), incident table, View Details button, Assign Team button, and status timeline section. Use grayscale wireframe style with minimal accent color, clean alignment, and labels that remain readable when pasted into Word."
+"Create a side-by-side low-fidelity UI prototype image titled 'Figure 3.5: User Interface Prototypes' for an M-PESA SMS Spending Analyzer. Left panel: mobile screen with login state, SMS paste/import field, Analyze button, and quick summary cards (Total Spent, Total Income, Balance Trend). Right panel: web dashboard with month filter, category pie chart, transaction table, budget-limit input, and notifications panel. Use clean wireframe styling with readable labels suitable for Word export."
 
 ## 3.5 Research Ethics
 
-The Community Disaster Reporting Application is built on ethical foundations that prioritize user privacy, safety, and data integrity. Because the platform handles sensitive incident and geospatial information, all submitted reports are treated with strict anonymity controls, and data is protected through encryption both in transit and at rest. The design also minimizes risks of misinformation and system bias by enforcing AI-assisted validation before dissemination to external responders. Informed consent is operationalized through clear terms of use that explain what real-time, non-identifiable data is shared, with whom, and for what emergency response purpose.
+The M-PESA SMS Spending Analyzer is built on ethical foundations that prioritize user privacy, financial-data confidentiality, and processing integrity. Because the platform handles sensitive personal transaction information, real messages should be protected through encryption in transit and at rest, while access is restricted to authenticated users only. The design minimizes analysis errors and categorization bias by combining deterministic parsing rules with transparent, reviewable categorization logic. Informed consent is supported through clear terms that explain what transaction data is stored, why it is processed, and how users can control or delete their records.
 
 
 <<<PAGE_BREAK>>>
